@@ -1,0 +1,133 @@
+.container {
+            max-width: 95%;
+            margin: 0 auto;
+            overflow-x: auto;
+            padding: 20px;
+        }
+body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+h1 {
+            color: #2196F3;
+        }
+button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2196F3;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+button:hover {
+            background-color: #1976D2;
+        }
+.header {
+    text-align: left;
+    margin-bottom: 30px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    display: grid;
+    grid-template-columns: 20% 5% 40% 30%;
+    align-items: center;
+    gap: 20px;
+}
+.logo-space {
+    justify-self: start;
+}
+
+
+
+.title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.main-title {
+    font-size: 5.8em;
+    font-weight: bold;
+    font-family: 'Montserrat', Arial, sans-serif; /* Cambiado a Montserrat de Google Fonts */
+    color: #2196F3;
+    letter-spacing: 2px;
+}
+.subtitle {
+    font-size: 1.3em;
+    color: #333;
+    width: 100%;
+    text-align: center;
+    margin-top: 5px;
+}
+.services-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+}
+.service-item {
+    font-size: 0.9em;
+    color: #1976D2;
+    margin: 4px 0;
+    text-align: right;
+    font-weight: bold;
+}
+footer{
+    margin-bottom: 30px;
+padding: 20px;
+background: #f8f9fa;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media screen and (max-width: 768px) {
+        .container {
+            padding: 10px;
+            margin: 10px auto;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .logo-space {
+            margin: 0 auto;
+        }
+}
+@media screen and (max-width: 900px) {
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .title-block,
+    .services-block {
+        align-items: center;
+        min-width: 120px;
+    }
+}
+.logo-circle {
+    width: 130px;
+    height: 130px;
+    background: #e3eafc;
+    border-radius: 50%;      /* Hace el contorno completamente redondeado */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(33,150,243,0.15);
+    overflow: hidden;
+}
+.logo-img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 50%;      /* Opcional: redondea la imagen también */
+}

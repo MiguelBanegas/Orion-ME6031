@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Corriente In (corriente en Neutro)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        pre{
+            text-align: left;
+            font-size: 0.75rem ;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .row label {
+            flex: 1;
+            margin-right: 10px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .row input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-width: 80px; /* Ajusta el tamaño del input */
+            text-align: right; /* Alineación para números */
+        }
+        .formula {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cálculo de Corriente I Neutro</h2>
+        <!-- Fórmula -->
+        
+        
+        
+
+        <form id="calculo-form" onsubmit="return false">
+            <!-- Fila 1 -->
+            <div class="row">
+                <!-- <label for="v1">V1:</label> -->
+                <!-- <input type="number" id="v1" step="0.001" value="220" maxlength="7"> -->
+                <label for="i1">I1:</label>
+                <input type="number" id="i1" step="0.001" required maxlength="7">
+                <label for="thd1">THD1 (%):</label>
+                <input type="number" id="thd1" step="0.1" value="0" required>
+                <label for="fp1">FP1:</label>
+                <input type="number" id="fp1" step="0.001" value="1" maxlength="7">
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="row">
+                <!-- <label for="v2">V2:</label> -->
+                <!-- <input type="number" id="v2" step="0.001" value="220" maxlength="7"> -->
+                <label for="i2">I2:</label>
+                <input type="number" id="i2" step="0.001" required maxlength="7">
+                <label for="thd2">THD2 (%):</label>
+                <input type="number" id="thd2" step="0.1" value="0" required>
+                <label for="fp2">FP2:</label>
+                <input type="number" id="fp2" step="0.001" value="1" maxlength="7">
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="row">
+                <!-- <label for="v3">V3:</label> -->
+                <!-- <input type="number" id="v3" step="0.001" value="220" maxlength="7"> -->
+                <label for="i3">I3:</label>
+                <input type="number" id="i3" step="0.001" required maxlength="7">
+                <label for="thd3">THD3 (%):</label>
+                <input type="number" id="thd3" step="0.1" value="0" required>
+                <label for="fp3">FP3:</label>
+                <input type="number" id="fp3" step="0.001" value="1" maxlength="7">
+            </div>
+
+            <button type="button" onclick="calcularIn()">Calcular I Neutro</button>
+        </form>
+        <div class="formula">
+            In = √((I1² + I2² + I3²) - (I1×I2) - (I1×I3) - (I2×I3))
+        </div>
+        <div id="resultado" class="result"></div>
+        <div>
+            <pre class="parrafo">
+    const I1_ef = i1 * Math.sqrt(1 + thd1 ** 2);
+    const I2_ef = i2 * Math.sqrt(1 + thd2 ** 2);
+    const I3_ef = i3 * Math.sqrt(1 + thd3 ** 2);
+
+    const phiA = Math.acos(cosPhiA); // Ángulo de Ia 0°
+    const phiB = Math.acos(cosPhiB) + (2 * Math.PI / 3); // (120° desfasado)
+    const phiC = Math.acos(cosPhiC) - (2 * Math.PI / 3); // (-120° desfasado)
+
+    // Convertir corrientes a componentes reales e imaginarias
+    const Ia_real = I1_ef * Math.cos(phiA);  const Ia_imag = I1_ef * Math.sin(phiA);
+    const Ib_real = I2_ef * Math.cos(phiB);  const Ib_imag = I2_ef * Math.sin(phiB);
+    const Ic_real = I3_ef * Math.cos(phiC);  const Ic_imag = I3_ef * Math.sin(phiC);
+
+    // Sumar las componentes reales e imaginarias de las corrientes de fase
+    const In_real = -(Ia_real + Ib_real + Ic_real); 
+    const In_imag = -(Ia_imag + Ib_imag + Ic_imag);
+
+    // Calcular la magnitud de la corriente del neutro
+    const In_magnitud = Math.sqrt(In_real ** 2 + In_imag ** 2);
+            </pre>
+        </div>
+        <div id="resultadoPhi" class="result"></div>
+    </div>
+
+    <script>
+        // Pasar al siguiente input al presionar Enter
+        document.querySelectorAll('input').forEach((input, index, inputs) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextInput = inputs[index + 1];
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            });
+        });
+
+        function calcularIn() {
+            // Obtener valores de entrada
+            const i1 = parseFloat(document.getElementById('i1').value);
+            const i2 = parseFloat(document.getElementById('i2').value);
+            const i3 = parseFloat(document.getElementById('i3').value);
+            const fp1= parseFloat(document.getElementById('fp1').value);
+            const fp2 = parseFloat(document.getElementById('fp2').value); // Ángulo de Ib (120° desfasado)
+            const fp3 = parseFloat(document.getElementById('fp3').value); // Ángulo de Ic (-120° desfasado)
+            const thd1 = parseFloat(document.getElementById('thd1').value) / 100;
+            const thd2 = parseFloat(document.getElementById('thd2').value) / 100;
+            const thd3 = parseFloat(document.getElementById('thd3').value) / 100;
+            // Calcular ángulos de desfasaje (en radianes)
+const phi1 = Math.acos(fp1); // Ángulo de Ia
+const phi2 = Math.acos(fp2) + (2 * Math.PI / 3); // Ángulo de Ib (120° desfasado)
+const phi3 = Math.acos(fp3) - (2 * Math.PI / 3); // Ángulo de Ic (-120° desfasado)
+           // Calcular las corrientes efectivas considerando THD
+    const I1_ef = i1 * Math.sqrt(1 + thd1 ** 2);
+    const I2_ef = i2 * Math.sqrt(1 + thd2 ** 2);
+    const I3_ef = i3 * Math.sqrt(1 + thd3 ** 2);
+    console.log("I con thd "+I1_ef)
+    console.log("I con thd "+I2_ef)
+    console.log("I con thd "+I3_ef)
+    console.log("cos phi "+phi1)
+    console.log("cos phi "+phi2)
+    console.log("cos phi "+phi3)
+            // Convertir corrientes a componentes reales e imaginarias
+    const Ia_real = I1_ef * Math.cos(phi1);
+    const Ia_imag = I1_ef * Math.sin(phi1);
+
+    const Ib_real = I2_ef * Math.cos(phi2);
+    const Ib_imag = I2_ef * Math.sin(phi2);
+
+    const Ic_real = I3_ef * Math.cos(phi3);
+    const Ic_imag = I3_ef * Math.sin(phi3);
+
+    // Sumar las componentes reales e imaginarias de las corrientes de fase
+    const In_real = -(Ia_real + Ib_real + Ic_real);
+    console.log("real "+In_real)
+    const In_imag = -(Ia_imag + Ib_imag + Ic_imag);
+    console.log("imag "+In_imag)
+
+    // Calcular la magnitud de la corriente del neutro
+    const In_magnitud = Math.sqrt(In_real ** 2 + In_imag ** 2);
+
+            // Calcular In usando la fórmula
+            const inValue = Math.sqrt(
+                (i1 ** 2 + i2 ** 2 + i3 ** 2) -
+                (i1 * i2) -
+                (i1 * i3) -
+                (i2 * i3)
+            );
+
+            // Mostrar resultado
+            const resultadoDiv = document.getElementById('resultado');
+            const resultadoDivPhi = document.getElementById('resultadoPhi');
+            console.log(inValue.toFixed(4));
+            resultadoDiv.innerHTML = `<strong>El valor de I Neutro sin considerar FP ni THD es:</strong> ${inValue.toFixed(4)}`;
+            console.log(In_magnitud.toFixed(4));
+            resultadoDivPhi.innerHTML = `<strong>El valor de I Neutro con FP y THD es:</strong> ${In_magnitud.toFixed(4)}`;
+        }
+    </script>
+</body>
+</html>

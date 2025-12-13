@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Corriente In con THD y FP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .row label {
+            flex: 1;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .row input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-width: 80px;
+            text-align: right;
+        }
+        .formula {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cálculo de Corriente In con THD y FP</h2>
+        <!-- Fórmula -->
+        <div class="formula">
+            In = √((I1_ef² + I2_ef² + I3_ef²) - (I1_ef×I2_ef) - (I1_ef×I3_ef) - (I2_ef×I3_ef))
+        </div>
+
+        <form id="calculo-form" onsubmit="return false">
+            <!-- Fila 1 -->
+            <div class="row">
+                <label for="i1">I1:</label>
+                <input type="number" id="i1" step="0.001" required maxlength="7">
+                <label for="fp1">FP1:</label>
+                <input type="number" id="fp1" step="0.001" value="1" maxlength="7">
+                
+                
+                <label for="thd1">THD1 (%):</label>
+                <input type="number" id="thd1" step="0.1" value="0" required>
+
+            </div>
+
+            <!-- Fila 2 -->
+            <div class="row">
+                <label for="i2">I2:</label>
+                <input type="number" id="i2" step="0.001" required maxlength="7">
+                <label for="fp2">FP2:</label>
+                <input type="number" id="fp2" step="0.001" value="1" maxlength="7">
+                <label for="thd2">THD2 (%):</label>
+                <input type="number" id="thd2" step="0.001" value="0" maxlength="7">
+            </div>
+
+            <!-- Fila 3 -->
+            <div class="row">
+                <label for="i3">I3:</label>
+                <input type="number" id="i3" step="0.001" required maxlength="7">
+                <label for="fp3">FP3:</label>
+                <input type="number" id="fp3" step="0.001" value="1" maxlength="7">
+                <label for="thd3">THD3 (%):</label>
+                <input type="number" id="thd3" step="0.001" value="0" maxlength="7">
+            </div>
+
+            <button type="button" onclick="calcularIn()">Calcular In</button>
+        </form>
+        <div id="resultado" class="result"></div>
+    </div>
+
+    <script>
+        function calcularIn() {
+            // Obtener valores de entrada
+            const i1 = parseFloat(document.getElementById('i1').value);
+            const i2 = parseFloat(document.getElementById('i2').value);
+            const i3 = parseFloat(document.getElementById('i3').value);
+            const fp1 = parseFloat(document.getElementById('fp1').value);
+            const fp2 = parseFloat(document.getElementById('fp2').value);
+            const fp3 = parseFloat(document.getElementById('fp3').value);
+            const thd1 = parseFloat(document.getElementById('thd1').value) / 100;
+            const thd2 = parseFloat(document.getElementById('thd2').value) / 100;
+            const thd3 = parseFloat(document.getElementById('thd3').value) / 100;
+
+            /* // Calcular corrientes efectivas ajustadas por THD y FP */
+            /* const i1_ef = i1 * Math.sqrt(fp1 ** 2 + (1 - fp1 ** 2) * (1 + thd1 ** 2)); */
+            /* const i2_ef = i2 * Math.sqrt(fp2 ** 2 + (1 - fp2 ** 2) * (1 + thd2 ** 2)); */
+            /* const i3_ef = i3 * Math.sqrt(fp3 ** 2 + (1 - fp3 ** 2) * (1 + thd3 ** 2)); */
+/* // Calcular las corrientes efectivas considerando THD */
+/*     const I1_ef = i1 * Math.sqrt(1 + thd1 ** 2); */
+/*     const I2_ef = i2 * Math.sqrt(1 + thd2 ** 2); */
+/*     const I3_ef = i3 * Math.sqrt(1 + thd3 ** 2); */
+/*             // Calcular In usando la fórmula */
+/*             const inValue = Math.sqrt( */
+/*                 (i1_ef ** 2 + i2_ef ** 2 + i3_ef ** 2) - */
+/*                 (i1_ef * i2_ef) - */
+/*                 (i1_ef * i3_ef) - */
+/*                 (i2_ef * i3_ef) */
+/*             ); */
+// Calcular las corrientes efectivas considerando THD
+    const I1_ef = i1 * Math.sqrt(1 + thd1 ** 2);
+    const I2_ef = i2 * Math.sqrt(1 + thd2 ** 2);
+    const I3_ef = i3 * Math.sqrt(1 + thd3 ** 2);
+    console.log("con thd " + I1_ef)
+console.log(I2_ef)
+console.log(I3_ef)
+
+    // Calcular ángulos de desfasaje (en radianes)
+    const phi1 = Math.acos(fp1); // Ángulo de Ia
+    const phi2 = Math.acos(fp2) + (2 * Math.PI / 3); // Ángulo de Ib (120° desfasado)
+    const phi3 = Math.acos(fp3) - (2 * Math.PI / 3); // Ángulo de Ic (-120° desfasado)
+    console.log("cos phi " + phi1)
+    console.log(phi2)
+    console.log(phi3)
+// Componentes reales e imaginarias de las corrientes de fase
+    const Ia_real = I1_ef * Math.cos(phi1);
+    const Ia_imag = I1_ef * Math.sin(phi1);
+
+    const Ib_real = I2_ef * Math.cos(phi2);
+    const Ib_imag = I2_ef * Math.sin(phi2);
+
+    const Ic_real = I3_ef * Math.cos(phi3);
+    const Ic_imag = I3_ef * Math.sin(phi3); 
+// Sumar componentes reales e imaginarias de las corrientes
+ const In_real = -(Ia_real + Ib_real + Ic_real);
+ console.log("In real "+In_real);
+ const In_imag = -(Ia_imag + Ib_imag + Ic_imag);
+ console.log("imag "+In_imag);
+// Magnitud de la corriente del neutro considerando FP y THD
+ const In_magnitud = Math.sqrt(In_real ** 2 + In_imag ** 2);
+ console.log("In mag "+In_magnitud);
+ 
+    const inValue = Math.sqrt(
+        (I1_ef ** 2 + I2_ef ** 2 + I3_ef ** 2) -
+        (I1_ef * I2_ef) -
+        (I1_ef * I3_ef) -
+        (I2_ef * I3_ef)
+    );
+
+            // Mostrar resultado
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = `<strong>El valor de In es:</strong> ${In_magnitud.toFixed(4)}`;
+        }
+    </script>
+</body>
+</html>

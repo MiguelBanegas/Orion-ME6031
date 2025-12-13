@@ -1,0 +1,4 @@
+ProductSN:1923416031
+Date&Time,,Voltage(V),UTHD(%),Current(A),ITHD(%),ITHD3(%),ITHD5(%),ITHD7(%),Frequency(Hz),Power Factor,Active Power(W),Reactive Power(Var),Apparent Power(Va),Active Energy(Wh),Reactive Energy(Varh),Apparent Energy(Vah),Current Demand(A),Current Peak Demand(A)&Date,,Total Active Power Deamnd(W),Total Active Power Peak Deamnd(W)&Date,,Total Reactive Power Deamnd(Var),Total Reactive Power Peak Deamnd(Var)&Date,,Total Apparent Power Deamnd(Va),Total Apparent Power Peak Deamnd(Va)&Date,,
+Date,Time,UA,UTHA,IA,ITHA,ITHXA,ITHYA,ITHZA,FA,PFA,PA,QA,SA,EPA,EQA,ESA,DmIA,PDmIA,PDmIA_D/T,DmP,PDmP,PDmP_D/T,DmQ,PDmQ,PDmQ_D/T,DmS,PDmS,PDmS_D/T,
+2024-11-07,16:41:52,225.59,4.344,141.94,11.795,1.823,9.152,5.958,50.02,0.691,22124.98,22743.19,32010.60,84229,85878,123507,119.03,188.44,2024-11-07 13:17:53,24763.85,97262.75,2024-11-07 13:17:53,45146.94,72597.27,2024-11-07 13:34:38,54586.79,122048.77,2024-11-07 13:17:53,
