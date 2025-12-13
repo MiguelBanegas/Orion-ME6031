@@ -500,6 +500,13 @@
 
         });
 
+        // Función para downsampling
+        function downsampleArray(arr, maxPoints) {
+            if (arr.length <= maxPoints) return arr;
+            const step = Math.ceil(arr.length / maxPoints);
+            return arr.filter((_, idx) => idx % step === 0);
+        }
+
         // Función para crear gráficos
         function crearGraficos(datos) {
             console.log('Iniciando creación de gráficos'); // Debug
@@ -513,11 +520,9 @@
             });
 
             // Formatear labels para mostrar solo hh:mm
-            const labels = datos.map(row => row.Time.substring(0, 5));
-            
-            // Reducir el número de labels a 15
-            const step = Math.ceil(labels.length / 15);
-            const reducedLabels = labels.filter((_, index) => index % step === 0);
+            const MAX_POINTS = 200;
+            const labels = downsampleArray(datos.map(row => row.Time.substring(0, 5)), MAX_POINTS);
+            const reducedLabels = labels;
             
             // Función para obtener el rango de valores para el eje Y
             function getYAxisRange(data, margin = 0.1) {
@@ -633,13 +638,13 @@
             }
 
             // Actualizar la configuración de los datasets para cada gráfico
-            function createDatasets(data, prefix, step) {
+            function createDatasets(data, prefix) {
                 const datasets = [];
 
                 // Agregar dataset para A
                 datasets.push({
                     label: `${prefix}A`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}A`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}A`]), MAX_POINTS),
                     borderColor: COLORS.A,
                     tension: 0.1,
                     hidden: false
@@ -647,7 +652,7 @@
                 // Agregar dataset para AB
 datasets.push({
     label: `${prefix}AB`,
-    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}AB`]),
+    data: downsampleArray(data.map(row => row[`${prefix}AB`]), MAX_POINTS),
     borderColor: COLORS.A,
     tension: 0.1,
     hidden: false
@@ -656,7 +661,7 @@ datasets.push({
                 // Agregar dataset para B
                 datasets.push({
                     label: `${prefix}B`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}B`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}B`]), MAX_POINTS),
                     borderColor: COLORS.B,
                     tension: 0.1,
                     hidden: false
@@ -665,7 +670,7 @@ datasets.push({
                 // Agregar dataset para C
                 datasets.push({
                     label: `${prefix}C`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}C`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}C`]), MAX_POINTS),
                     borderColor: COLORS.C,
                     tension: 0.1,
                     hidden: false
@@ -675,7 +680,7 @@ datasets.push({
                 if (data.some(row => row[`${prefix}Sum`] !== undefined)) {
                     datasets.push({
                         label: `${prefix}Sum`, // Campo Ssum
-                        data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}Sum`]),
+                        data: downsampleArray(data.map(row => row[`${prefix}Sum`]), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -686,7 +691,7 @@ datasets.push({
                 if (data.some(row => row[`${prefix}Avg`] !== undefined)) {
                     datasets.push({
                         label: `${prefix}Avg`, // Campo Pfavg
-                        data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}Avg`]),
+                        data: downsampleArray(data.map(row => row[`${prefix}Avg`]), MAX_POINTS),
                         borderColor: COLORS.Avg, // Define un color para el promedio
                         tension: 0.1,
                         hidden: false
@@ -738,7 +743,7 @@ datasets.push({
             // Ejemplo de uso para un gráfico de potencia
             const configureChart = (ctx, prefix, title, chartKey) => {
                 if (ctx) {
-                    const datasets = createDatasets(datos, prefix, step);
+                    const datasets = createDatasets(datos, prefix);
                     const range = getPowerAxisRange(datasets.map(ds => ds.data));
                     const stepSize = calculateStepSize(range.min, range.max);
                     
@@ -763,7 +768,7 @@ datasets.push({
                 const UDatasets = [
                     {
                         label: 'UAB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UAB),
+                        data: downsampleArray(datos.map(row => row.UAB), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -772,7 +777,7 @@ datasets.push({
                     },
                     {
                         label: 'UBC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UBC),
+                        data: downsampleArray(datos.map(row => row.UBC), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -780,7 +785,7 @@ datasets.push({
                     },
                     {
                         label: 'UCA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UCA),
+                        data: downsampleArray(datos.map(row => row.UCA), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -835,7 +840,7 @@ datasets.push({
                 const uthdDatasets = [
                     {
                         label: 'Fases AB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UTHAB),
+                        data: downsampleArray(datos.map(row => row.UTHAB), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -843,7 +848,7 @@ datasets.push({
                     },
                     {
                         label: 'Fases BC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UTHBC),
+                        data: downsampleArray(datos.map(row => row.UTHBC), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -851,7 +856,7 @@ datasets.push({
                     },
                     {
                         label: 'Fases CA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UTHCA),
+                        data: downsampleArray(datos.map(row => row.UTHCA), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -859,7 +864,7 @@ datasets.push({
                     },
                     {
                         label: 'Promedio',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UTHAvg),
+                        data: downsampleArray(datos.map(row => row.UTHAvg), MAX_POINTS),
                         backgroundColor: COLORS.CosPhi_B,
                         borderColor: COLORS.CosPhi_B,
                         borderWidth: 1,
@@ -914,7 +919,7 @@ datasets.push({
                 const iDatasets = [
                     {
                         label: 'IA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.IA),
+                        data: downsampleArray(datos.map(row => row.IA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -923,7 +928,7 @@ datasets.push({
                     },
                     {
                         label: 'IB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.IB),
+                        data: downsampleArray(datos.map(row => row.IB), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -931,7 +936,7 @@ datasets.push({
                     },
                     {
                         label: 'IC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.IC),
+                        data: downsampleArray(datos.map(row => row.IC), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -986,7 +991,7 @@ datasets.push({
                 const ithDatasets = [
                     {
                         label: 'TotA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHA),
+                        data: downsampleArray(datos.map(row => row.ITHA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -994,7 +999,7 @@ datasets.push({
                     },
                     {
                         label: 'TotB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHB),
+                        data: downsampleArray(datos.map(row => row.ITHB), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -1002,7 +1007,7 @@ datasets.push({
                     },
                     {
                         label: 'TotC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHC),
+                        data: downsampleArray(datos.map(row => row.ITHC), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -1010,7 +1015,7 @@ datasets.push({
                     },
                     {
                         label: 'Prom',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHAvg),
+                        data: downsampleArray(datos.map(row => row.ITHAvg), MAX_POINTS),
                         backgroundColor: COLORS.CosPhi_B,
                         borderColor: COLORS.CosPhi_B,
                         borderWidth: 1,
@@ -1018,7 +1023,7 @@ datasets.push({
                     },
                     {
                         label: '3erA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHXA),
+                        data: downsampleArray(datos.map(row => row.ITHXA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -1026,7 +1031,7 @@ datasets.push({
                     },
                     {
                         label: '3erB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHXB),
+                        data: downsampleArray(datos.map(row => row.ITHXB), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -1034,7 +1039,7 @@ datasets.push({
                     },
                     {
                         label: '3erC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHXC),
+                        data: downsampleArray(datos.map(row => row.ITHXC), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -1042,7 +1047,7 @@ datasets.push({
                     },
                     {
                         label: '5toA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHYA),
+                        data: downsampleArray(datos.map(row => row.ITHYA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -1050,7 +1055,7 @@ datasets.push({
                     },
                     {
                         label: '5toB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHYB),
+                        data: downsampleArray(datos.map(row => row.ITHYB), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -1058,7 +1063,7 @@ datasets.push({
                     },
                     {
                         label: '5toC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHYC),
+                        data: downsampleArray(datos.map(row => row.ITHYC), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -1066,7 +1071,7 @@ datasets.push({
                     },
                     {
                         label: '7moA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHZA),
+                        data: downsampleArray(datos.map(row => row.ITHZA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -1074,7 +1079,7 @@ datasets.push({
                     },
                     {
                         label: '7moB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHZB),
+                        data: downsampleArray(datos.map(row => row.ITHZB), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -1082,7 +1087,7 @@ datasets.push({
                     },
                     {
                         label: '7moC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHZC),
+                        data: downsampleArray(datos.map(row => row.ITHZC), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -1139,7 +1144,7 @@ datasets.push({
             // Gráfico de Factor de Potencia
             const ctxPF = document.getElementById('graficaPF');
             //if (ctxPF) {
-            //    const pfDatasets = createDatasets(datos, 'PF', step);
+            //    const pfDatasets = createDatasets(datos, 'PF');
             //    const pfRange = getYAxisRange(pfDatasets.map(ds => ds.data));
             //    charts.pf = new Chart(ctxPF, createChartConfig(pfDatasets, 'Factor de Potencia', {
             //        min: pfRange.min,
@@ -1156,7 +1161,7 @@ datasets.push({
                 const pfDatasets = [
                     {
                         label: 'PF',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.PF),
+                        data: downsampleArray(datos.map(row => row.PF), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -1207,54 +1212,54 @@ datasets.push({
             }            
 
             // Crear gráfico de Cos Phi
-            const ctxCosPhi = document.getElementById('graficaCosPhi2xx');
+            const ctxCosPhi = document.getElementById('graficaCosPhi2');
             if (ctxCosPhi) {
                 // Crear datasets para Cos Phi
                 const cosPhiDatasets = [
                     {
                         label: 'Cos Phi A',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PA;
                             const Q = row.QA;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi B',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PB;
                             const Q = row.QB;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi C',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PC;
                             const Q = row.QC;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi Avg',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PSum;
                             const Q = row.QSum;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -1278,31 +1283,31 @@ datasets.push({
             }
 
             // Crear el gráfico combinado
-            const ctxCombined = document.getElementById('graficaFPyCosPhixx');
-            if (ctxCombined) {
-                charts.combined = new Chart(ctxCombined, {
-                    type: 'line',
-                    data: {
-                        labels: reducedLabels,
-                        datasets: combinedDatasets
-                    },
-                    options: {
-                        scales: {
-                            y: { // Eje Y único
-                                min: 0,
-                                max: 1,
-                                ticks: {
-                                    stepSize: 0.1
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Valor'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+            // const ctxCombined = document.getElementById('graficaFPyCosPhixx');
+            // if (ctxCombined) {
+            //     charts.combined = new Chart(ctxCombined, {
+            //         type: 'line',
+            //         data: {
+            //             labels: reducedLabels,
+            //             datasets: combinedDatasets
+            //         },
+            //         options: {
+            //             scales: {
+            //                 y: { // Eje Y único
+            //                     min: 0,
+            //                     max: 1,
+            //                     ticks: {
+            //                         stepSize: 0.1
+            //                     },
+            //                     title: {
+            //                         display: true,
+            //                         text: 'Valor'
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     });
+            // }
 
             // Gráfico de Potencia Activa (versión completa)
             const ctxPA = document.getElementById('graficaPotenciaActiva');
@@ -1310,21 +1315,21 @@ datasets.push({
                 const paDatasets = [
                     {
                         label: 'Potencia Activa W',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.PSum),
+                        data: downsampleArray(datos.map(row => row.PSum), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Potencia Reactiva VAr',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.QSum),
+                        data: downsampleArray(datos.map(row => row.QSum), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Potencia Aparente VA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.SSum),
+                        data: downsampleArray(datos.map(row => row.SSum), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
@@ -1347,21 +1352,21 @@ datasets.push({
                 const prDatasets = [
                     {
                         label: 'Energia Activa Wh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPSum),
+                        data: downsampleArray(datos.map(row => row.EPSum), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Energia Reactiva VArh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQSum),
+                        data: downsampleArray(datos.map(row => row.EQSum), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Energia Aparente VAh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ESSum),
+                        data: downsampleArray(datos.map(row => row.ESSum), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
@@ -1379,9 +1384,9 @@ datasets.push({
             }
 
             // Gráfico de Potencia Aparente
-            const ctxPS = document.getElementById('graficaPotenciaAparentexx');
+            const ctxPS = document.getElementById('graficaPotenciaAparente');
             if (ctxPS) {
-                const psDatasets = createDatasets(datos, 'S', step);
+                const psDatasets = createDatasets(datos, 'S');
                 // Agregar log para ver los datos de psDatasets
                 console.log('Datos de psDatasets:', psDatasets);
                 const psRange = getPowerAxisRange(psDatasets.map(ds => ds.data));
@@ -1401,33 +1406,33 @@ datasets.push({
             }
 
             // Gráfico de Energía Activa
-            const ctxEP = document.getElementById('graficaEnergiaActivaxx');
+            const ctxEP = document.getElementById('graficaEnergiaActiva');
             if (ctxEP) {
                 const epDatasets = [
                     {
                         label: 'EPA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPA),
+                        data: downsampleArray(datos.map(row => row.EPA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPB),
+                        data: downsampleArray(datos.map(row => row.EPB), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPC),
+                        data: downsampleArray(datos.map(row => row.EPC), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPSum',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPSum),
+                        data: downsampleArray(datos.map(row => row.EPSum), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -1445,33 +1450,33 @@ datasets.push({
             }
 
             // Gráfico de Energía Reactiva
-            const ctxEQ = document.getElementById('graficaEnergiaReactivaxx');
+            const ctxEQ = document.getElementById('graficaEnergiaReactiva');
             if (ctxEQ) {
                 const eqDatasets = [
                     {
                         label: 'EQA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQA),
+                        data: downsampleArray(datos.map(row => row.EQA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQB),
+                        data: downsampleArray(datos.map(row => row.EQB), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQC),
+                        data: downsampleArray(datos.map(row => row.EQC), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQSum',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQSum),
+                        data: downsampleArray(datos.map(row => row.EQSum), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false

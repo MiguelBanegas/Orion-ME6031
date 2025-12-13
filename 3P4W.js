@@ -1,4 +1,5 @@
-const { jsPDF } = window.jspdf;
+
+        const { jsPDF } = window.jspdf;
 
         // Variables globales
         let datos = [];
@@ -10,168 +11,89 @@ const { jsPDF } = window.jspdf;
             document.getElementById('csvFile').addEventListener('change', function(e) {
                 console.log('Archivo seleccionado'); // Debug
                 const file = e.target.files[0];
-                if (file) {
-                    // Validar la extensión y que el nombre del archivo termine en 3P3W.csv
-                    const fileName = file.name;
-                    const isValidExtension = fileName.endsWith('.csv');
-                    const isValidSuffix = fileName.includes('3P4W.csv'); // Verifica que termine en 3P3W.csv
-                
-                    if (!isValidExtension || !isValidSuffix) {
-                        alert('Por favor, selecciona un archivo que contenga "3P4W" en su nombre y termine en .csv.');
-                        return; // Salir de la función si la validación falla
-                    }
-                
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const text = e.target.result;
-                        const lines = text.split('\n');
-                        procesarCSV(lines);
-                    };
-                    reader.readAsText(file);
-                }
-            });
-        
-
-        // Función para procesar el archivo CSV
-        function procesarCSV(lines) {
-            try {
-                console.log('Iniciando procesamiento del archivo');
-                document.getElementById('loadingMessage').style.display = 'block';
-                
-                // Ocultar contenedores al inicio del procesamiento
-                const contenidoDinamico = document.getElementById('contenidoDinamico');
-                const graficosContainer = document.getElementById('graficosContainer');
-                const tablaContainer = document.getElementById('tablaContainer');
-
-                if (contenidoDinamico) contenidoDinamico.style.display = 'none';
-                if (graficosContainer) graficosContainer.style.display = 'none';
-                if (tablaContainer) tablaContainer.style.display = 'none';
-
-                document.querySelectorAll('.grafico-container').forEach(container => {
-                    container.style.display = 'none';
-                });
-
-                datos = [];
-                
-                // Obtener el número de serie de la primera línea
-                const serialNumber = lines[0].split(':')[1]?.trim() || '';
-                document.getElementById('serialNumber').textContent = serialNumber;
-
-                // Encontrar el índice donde comienzan los datos reales
-                let startIndex = -1;
-                let headers = [];
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].includes('Date,Time')) {
-                        headers = lines[i].split(',').map(header => header.trim());
-                        startIndex = i + 1;
-                        console.log('Headers encontrados:', headers); // Debug
-                        break;
-                    }
-                }
-
-                if (startIndex === -1) {
-                    console.error('No se encontró la línea de encabezados correcta');
+                if (!file) {
                     return;
                 }
 
-                // Procesar las líneas del CSV
-                for (let i = startIndex; i < lines.length; i++) {
-                    const row = lines[i].trim().split(',');
-                    if (row.length > 8 && row[0].trim() !== '') {
-                        try {
-                            if (!isNaN(parseFloat(row[2]))) { // Verifica si UA es un número
-                                datos.push({
-                                    Date: row[0],
-                                    Time: row[1],
-                                    // Voltajes
-                                    UA: parseFloat(row[2]) || 0,
-                                    UB: parseFloat(row[3]) || 0,
-                                    UC: parseFloat(row[4]) || 0,
-                                    UAvg: parseFloat(row[5]) || 0,
-                                    // UTHD
-                                    UTHA: parseFloat(row[6]) || 0,
-                                    UTHB: parseFloat(row[7]) || 0,
-                                    UTHC: parseFloat(row[8]) || 0,
-                                    UTHAvg: parseFloat(row[9]) || 0,
-                                    // Corrientes
-                                    IA: parseFloat(row[10]) || 0,
-                                    IB: parseFloat(row[11]) || 0,
-                                    IC: parseFloat(row[12]) || 0,
-                                    IAvg: parseFloat(row[13]) || 0,
-                                    // ITHD
-                                    ITHA: parseFloat(row[14]) || 0,
-                                    ITHB: parseFloat(row[15]) || 0,
-                                    ITHC: parseFloat(row[16]) || 0,
-                                    ITHAvg: parseFloat(row[17]) || 0,
-                                    //3er armonico
-                                    ITHXA: parseFloat(row[18]) || 0,
-                                    ITHXB: parseFloat(row[19]) || 0,
-                                    ITHXC: parseFloat(row[20]) || 0,
-                                    //5to
-                                    ITHYA: parseFloat(row[21]) || 0,
-                                    ITHYB: parseFloat(row[22]) || 0,
-                                    ITHYC: parseFloat(row[23]) || 0,
-                                    //7mo
-                                    ITHZA: parseFloat(row[24]) || 0,
-                                    ITHZB: parseFloat(row[25]) || 0,
-                                    ITHZC: parseFloat(row[26]) || 0,
-                                    // Frecuencias
-                                    //FA: parseFloat(row[27]) || 0,
-                                    //FB: parseFloat(row[28]) || 0,
-                                    //FC: parseFloat(row[29]) || 0,
-                                    //FAvg: parseFloat(row[30]) || 0,
-                                    // Factor de Potencia
-                                    PFA: parseFloat(row[31]) || 0,
-                                    PFB: parseFloat(row[32]) || 0,
-                                    PFC: parseFloat(row[33]) || 0,
-                                    PFAvg: parseFloat(row[34]) || 0,
-                                    // Potencia Activa
-                                    PA: parseFloat(row[35]) || 0,
-                                    PB: parseFloat(row[36]) || 0,
-                                    PC: parseFloat(row[37]) || 0,
-                                    PSum: parseFloat(row[38]) || 0,
-                                    // Potencia Reactiva
-                                    QA: parseFloat(row[39]) || 0,
-                                    QB: parseFloat(row[40]) || 0,
-                                    QC: parseFloat(row[41]) || 0,
-                                    QSum: parseFloat(row[42]) || 0,
-                                    // Potencia Aparente
-                                    SA: parseFloat(row[43]) || 0,
-                                    SB: parseFloat(row[44]) || 0,
-                                    SC: parseFloat(row[45]) || 0,
-                                    SSum: parseFloat(row[46]) || 0,
-                                    // Energías
-                                    EPA: parseFloat(row[47]) || 0,
-                                    EPB: parseFloat(row[48]) || 0,
-                                    EPC: parseFloat(row[49]) || 0,
-                                    EPSum: parseFloat(row[50]) || 0,
-                                    EQA: parseFloat(row[51]) || 0,
-                                    EQB: parseFloat(row[52]) || 0,
-                                    EQC: parseFloat(row[53]) || 0,
-                                    EQSum: parseFloat(row[54]) || 0
-                                });
-                            }
-                        } catch (e) {
-                            console.warn('Error al procesar la línea', i, ':', e);
-                            continue;
-                        }
-                    }
+                // --- Validación del nombre de archivo ---
+                const fileName = file.name;
+                const isValidExtension = fileName.endsWith('.csv');
+                const isValidSuffix = fileName.includes('3P4W.csv');
+                if (!isValidExtension || !isValidSuffix) {
+                    alert('Por favor, selecciona un archivo que contenga "3P4W" en su nombre y termine en .csv.');
+                    return;
                 }
 
-                console.log('Datos procesados:', datos.length, 'registros'); // Debug
+                console.log('Iniciando procesamiento con Web Worker');
+                document.getElementById('loadingMessage').style.display = 'block';
+
+                // --- Ocultar contenido mientras se procesa ---
+                const contenidoDinamico = document.getElementById('contenidoDinamico');
+                const graficosContainer = document.getElementById('graficosContainer');
+                const tablaContainer = document.getElementById('tablaContainer');
+                if (contenidoDinamico) contenidoDinamico.style.display = 'none';
+                if (graficosContainer) graficosContainer.style.display = 'none';
+                if (tablaContainer) tablaContainer.style.display = 'none';
+                document.querySelectorAll('.grafico-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+                
+                // --- Lógica del Web Worker ---
+                const worker = new Worker('csv-worker.js');
+
+                worker.onmessage = function(event) {
+                    const { type, payload } = event.data;
+
+                    if (type === 'complete') {
+                        console.log('Worker completado. Recibidos', payload.datos.length, 'registros.');
+                        // Asignar los datos recibidos a las variables globales
+                        datos = payload.datos;
+                        datosActivos = datos; // Inicializar el conjunto de datos activo
+                        
+                        // Actualizar UI con los datos del worker
+                        actualizarUIMostrarResultados(payload.serialNumber, payload.datos);
+                        
+                        // Terminar el worker para liberar recursos
+                        worker.terminate();
+
+                    } else if (type === 'error') {
+                        console.error('Error desde el worker:', payload);
+                        alert('Error al procesar el archivo: ' + payload);
+                        document.getElementById('loadingMessage').style.display = 'none';
+                        worker.terminate();
+                    }
+                };
+
+                worker.onerror = function(error) {
+                    console.error('Error en el worker:', error);
+                    alert('Ocurrió un error en el worker de procesamiento.');
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    worker.terminate();
+                };
+
+                // Enviar el archivo al worker para que comience el procesamiento
+                worker.postMessage(file);
+            });
+
+        // Nueva función para actualizar la UI una vez que el worker ha terminado
+        function actualizarUIMostrarResultados(serialNumber, datosProcesados) {
+            try {
+                document.getElementById('serialNumber').textContent = serialNumber;
 
                 // Configurar las fechas solo si hay datos válidos
-                if (datos.length > 0) {
-                    const primerRegistro = datos[0];
-                    const ultimoRegistro = datos[datos.length - 1];
-                    
-                    console.log('Primer registro:', primerRegistro); // Debug
-                    console.log('Último registro:', ultimoRegistro); // Debug
+                if (datosActivos.length > 0) {
+                    // Ordenar por fecha para encontrar los registros de inicio y fin reales
+                    const sortedDatos = [...datosActivos].sort((a, b) => {
+                        const dateA = new Date(formatearFechaHora(a.Date, a.Time));
+                        const dateB = new Date(formatearFechaHora(b.Date, b.Time));
+                        return dateA - dateB;
+                    });
 
+                    const primerRegistro = sortedDatos[0];
+                    const ultimoRegistro = sortedDatos[sortedDatos.length - 1];
+                    
                     const fechaInicio = formatearFechaHora(primerRegistro.Date, primerRegistro.Time);
                     const fechaFin = formatearFechaHora(ultimoRegistro.Date, ultimoRegistro.Time);
-
-                    console.log('Fechas configuradas:', {fechaInicio, fechaFin}); // Debug
 
                     if (fechaInicio && fechaFin) {
                         document.getElementById('fechaInicio').value = fechaInicio;
@@ -179,67 +101,80 @@ const { jsPDF } = window.jspdf;
                     }
                 }
 
-                // Mostrar contenedores solo cuando se han procesado los datos exitosamente
+                // Mostrar contenedores ahora que los datos están listos
                 setTimeout(() => {
+                    const contenidoDinamico = document.getElementById('contenidoDinamico');
+                    const myGrid = document.getElementById('myGrid');
+                    const graficosContainer = document.getElementById('graficosContainer');
+
                     if (contenidoDinamico) contenidoDinamico.style.display = 'block';
+                    if (myGrid) myGrid.style.display = 'block';
                     if (graficosContainer) graficosContainer.style.display = 'block';
-                    if (tablaContainer) tablaContainer.style.display = 'block';
+                    
                     document.getElementById('loadingMessage').style.display = 'none';
                     
-                    actualizarTabla(datos);
-                    crearGraficos(datos);
+                    inicializarGrid();
+                    crearGraficos(datosActivos);
                 }, loadingDelay);
 
             } catch (error) {
-                console.error('Error al procesar el archivo:', error);
-                alert('Error al procesar el archivo: ' + error.message);
+                console.error('Error al actualizar la UI con los resultados:', error);
+                alert('Error al mostrar los resultados: ' + error.message);
                 document.getElementById('loadingMessage').style.display = 'none';
             }
         }
 
-        // Función para actualizar la tabla
-        function actualizarTabla(datosAMostrar) {
-            console.log('Iniciando actualización de tabla'); // Debug
-            const tableBody = document.getElementById('tableBody');
-            if (!tableBody) {
-                console.error('No se encontró el elemento tableBody');
+        // --- Lógica de AG-Grid ---
+        let gridOptions = null; // Guardará la configuración del grid
+        let gridApi = null;     // Guardará la API del grid
+
+        function inicializarGrid() {
+            console.log('Inicializando AG-Grid.');
+            const gridDiv = document.querySelector('#myGrid');
+            if (!gridDiv) {
+                console.error('No se encontró el div #myGrid');
                 return;
             }
 
-            // Limpiar tabla existente
-            tableBody.innerHTML = '';
+            // Si una instancia anterior del grid existe, destruirla.
+            if (gridApi) {
+                gridApi.destroy();
+            }
 
-            // Verificar que hay datos para mostrar
-            if (!datosAMostrar || datosAMostrar.length === 0) {
-                console.warn('No hay datos para mostrar en la tabla');
+            if (!datosActivos || datosActivos.length === 0) {
+                console.warn('No hay datos activos para mostrar en el grid.');
                 return;
             }
 
-            // Crear encabezados si no existen
-            const tableHead = document.getElementById('tableHead');
-            if (tableHead && tableHead.children.length === 0) {
-                const tr = document.createElement('tr');
-                Object.keys(datosAMostrar[0]).forEach(key => {
-                    const th = document.createElement('th');
-                    th.textContent = key;
-                    tr.appendChild(th);
-                });
-                tableHead.appendChild(tr);
-            }
-
-            // Crear filas con los datos
-            datosAMostrar.forEach(row => {
-                const tr = document.createElement('tr');
-                Object.values(row).forEach(value => {
-                    const td = document.createElement('td');
-                    td.textContent = value;
-                    tr.appendChild(td);
-                });
-                tableBody.appendChild(tr);
+            // Generar definiciones de columna dinámicamente
+            const columnDefs = Object.keys(datosActivos[0]).map(key => {
+                return {
+                    field: key,
+                    sortable: true,
+                    filter: true,
+                    resizable: true
+                };
             });
 
-            console.log('Tabla actualizada con', datosAMostrar.length, 'registros'); // Debug
+            gridOptions = {
+                columnDefs: columnDefs,
+                rowData: datosActivos,
+                theme: 'legacy', // Usar el sistema de temas heredado (CSS)
+                defaultColDef: {
+                    // Configuraciones por defecto para todas las las columnas
+                    filter: 'agTextColumnFilter',
+                    floatingFilter: true, // Añade filtros debajo de los encabezados
+                },
+                animateRows: true,
+                pagination: true,
+                paginationPageSize: 20
+            };
+
+            // Crear el grid y capturar su API
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+            // console.log('Grid API inicializada:', gridApi);
         }
+
 
         // Función para formatear fecha y hora
         function formatearFechaHora(fecha, hora) {
@@ -274,89 +209,100 @@ const { jsPDF } = window.jspdf;
         }
 
         // Event listeners para los botones
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM cargado, configurando event listeners'); // Debug
+        // Se elimina el wrapper DOMContentLoaded ya que el script se carga al final del body,
+        // garantizando que el DOM está listo. Esto evita posibles problemas de scope/timing.
+        
+        console.log('Configurando event listeners para botones');
 
-            // Event listener para el botón de filtro
-            const aplicarFiltro = document.getElementById('aplicarFiltro');
-            if (aplicarFiltro) {
-                aplicarFiltro.addEventListener('click', function() {
-                    console.log('Botón de filtro presionado'); // Debug
-                    const fechaInicio = document.getElementById('fechaInicio').value;
-                    const fechaFin = document.getElementById('fechaFin').value;
+        // Event listener para el botón de filtro
+        const aplicarFiltro = document.getElementById('aplicarFiltro');
+        if (aplicarFiltro) {
+            aplicarFiltro.addEventListener('click', function() {
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                if (!fechaInicio || !fechaFin) {
+                    alert('Por favor, seleccione fechas válidas');
+                    return;
+                }
 
-                    if (!fechaInicio || !fechaFin) {
-                        alert('Por favor, seleccione fechas válidas');
-                        return;
-                    }
+                // console.log('gridApi antes de filtrar:', gridApi);
+                if (!gridApi) {
+                    alert('El grid no está inicializado. Cargue datos primero.');
+                    return;
+                }
+                
+                document.getElementById('loadingMessage').style.display = 'block';
 
-                    document.getElementById('loadingMessage').style.display = 'block';
+                setTimeout(() => {
+                    try {
+                        const startDate = new Date(fechaInicio);
+                        const endDate = new Date(fechaFin);
 
-                    setTimeout(() => {
-                        try {
-                            const startDate = new Date(fechaInicio);
-                            const endDate = new Date(fechaFin);
-
-                            const datosFiltrados = datos.filter(row => {
-                                const [año, mes, dia] = row.Date.split('-');
-                                const fechaRegistro = new Date(`${año}-${mes}-${dia}T${row.Time}`);
-                                return fechaRegistro >= startDate && fechaRegistro <= endDate;
-                            });
-
-                            if (datosFiltrados.length > 0) {
-                                actualizarTabla(datosFiltrados);
-                                crearGraficos(datosFiltrados);
-                            } else {
-                                alert('No se encontraron datos en el rango seleccionado');
-                            }
-                        } catch (error) {
-                            console.error('Error al aplicar filtro:', error);
-                            alert('Error al aplicar el filtro: ' + error.message);
-                        } finally {
-                            document.getElementById('loadingMessage').style.display = 'none';
-                        }
-                    }, loadingDelay);
-                });
-            }
-
-            // Event listener para el botón de reset
-            const resetFiltro = document.getElementById('resetFiltro');
-            if (resetFiltro) {
-                resetFiltro.addEventListener('click', function(e) {
-         //           e.preventDefault();
-         //           console.log('Botón de reset presionado'); // Debug
-
-                    if (datos.length > 0) {
-                        const primerRegistro = datos[0];
-                        const ultimoRegistro = datos[datos.length - 1];
+                        datosActivos = datos.filter(row => {
+                            const fechaRegistro = new Date(formatearFechaHora(row.Date, row.Time));
+                            return fechaRegistro >= startDate && fechaRegistro <= endDate;
+                        });
                         
-                        const fechaInicio = formatearFechaHora(primerRegistro.Date, primerRegistro.Time);
-                        const fechaFin = formatearFechaHora(ultimoRegistro.Date, ultimoRegistro.Time);
-
-                        if (fechaInicio && fechaFin) {
-                            document.getElementById('fechaInicio').value = fechaInicio;
-                            document.getElementById('fechaFin').value = fechaFin;
+                        gridApi.setGridOption('rowData', datosActivos);
+                        crearGraficos(datosActivos);
+                        
+                        if(datosActivos.length === 0){
+                            alert('No se encontraron datos en el rango seleccionado');
                         }
+                    } catch (error) {
+                        console.error('Error al aplicar filtro:', error);
+                        alert('Error al aplicar el filtro: ' + error.message);
+                    } finally {
+                        document.getElementById('loadingMessage').style.display = 'none';
                     }
+                }, loadingDelay);
+            });
+        }
 
-                    document.getElementById('loadingMessage').style.display = 'block';
-
-                    setTimeout(() => {
-                        try {
-                            // Restablecer la tabla y grficos con todos los datos
-                            actualizarTabla(datos);
-                            crearGraficos(datos);
-                        } catch (error) {
-                            console.error('Error al resetear:', error);
-                            alert('Error al resetear: ' + error.message);
-                        } finally {
-                            document.getElementById('loadingMessage').style.display = 'none';
-                        }
-                    }, loadingDelay); // Usar el nuevo tiempo de carga
-                });
-            }
-        });
-
+                    // Event listener para el botón de reset
+                    const resetFiltro = document.getElementById('resetFiltro');
+                    if (resetFiltro) {
+                        resetFiltro.addEventListener('click', function(e) {
+                            if (datos.length > 0) {
+                                // Ordenar por fecha para encontrar los registros de inicio y fin reales
+                                const sortedDatos = [...datos].sort((a, b) => {
+                                    const dateA = new Date(formatearFechaHora(a.Date, a.Time));
+                                    const dateB = new Date(formatearFechaHora(b.Date, b.Time));
+                                    return dateA - dateB;
+                                });
+                                const primerRegistro = sortedDatos[0];
+                                const ultimoRegistro = sortedDatos[sortedDatos.length - 1];
+                                
+                                const fechaInicio = formatearFechaHora(primerRegistro.Date, primerRegistro.Time);
+                                const fechaFin = formatearFechaHora(ultimoRegistro.Date, ultimoRegistro.Time);
+        
+                                if (fechaInicio && fechaFin) {
+                                    document.getElementById('fechaInicio').value = fechaInicio;
+                                    document.getElementById('fechaFin').value = fechaFin;
+                                }
+                            }
+        
+                            if (!gridApi) {
+                                return;
+                            }
+        
+                            document.getElementById('loadingMessage').style.display = 'block';
+        
+                            setTimeout(() => {
+                                try {
+                                    datosActivos = datos;
+                                    // Actualizar datos en el grid existente
+                                    gridApi.setGridOption('rowData', datosActivos);
+                                    crearGraficos(datosActivos);
+                                } catch (error) {
+                                    console.error('Error al resetear:', error);
+                                    alert('Error al resetear: ' + error.message);
+                                } finally {
+                                    document.getElementById('loadingMessage').style.display = 'none';
+                                }
+                            }, loadingDelay);
+                        });
+                    }
         // Función para crear gráficos
         // Agrega esta función utilitaria antes de crearGraficos
 function downsampleArray(arr, maxPoints) {
@@ -998,16 +944,31 @@ function crearGraficos(datos) {
 
         function getPowerAxisRange(data) {
             const values = data.flat().filter(v => v !== null && !isNaN(v));
+            if (values.length === 0) return { min: 0, max: 1 };
+
             const min = Math.min(...values);
             const max = Math.max(...values);
             
-            // Agregar un pequeño margen para mejor visualización
-            const range = max - min;
-            const margin = range * 0.05; // 5% de margen
+            let finalMin = min;
+            let finalMax = max;
+
+            if (min === max) {
+                const margin = Math.abs(min * 0.1) || 0.1; // Margen del 10% o 0.1
+                finalMin -= margin;
+                finalMax += margin;
+            } else {
+                const range = max - min;
+                const margin = range * 0.05; // 5% de margen
+                finalMin -= margin;
+                finalMax += margin;
+            }
+            
+            // La potencia aparente es siempre positiva, así que fijar el eje en cero.
+            finalMin = Math.max(0, finalMin);
             
             return {
-                min: min - margin,
-                max: max + margin
+                min: finalMin,
+                max: finalMax
             };
         }
 
@@ -1158,21 +1119,27 @@ function crearGraficos(datos) {
             const min = Math.min(...values);
             const max = Math.max(...values);
             
-            // Si min y max son iguales, agregar un pequeño margen
+            let finalMin, finalMax;
+
             if (min === max) {
-                const value = min;
-                return {
-                    min: Number((value - 0.1).toFixed(3)),
-                    max: Number((value + 0.1).toFixed(3))
-                };
+                // Si el valor es único, darle un pequeño rango a su alrededor
+                finalMin = min - 0.1;
+                finalMax = max + 0.1;
+            } else {
+                const range = max - min;
+                const margin = range * 0.05;
+                finalMin = min - margin;
+                finalMax = max + margin;
+            }
+
+            // Si el punto de datos más pequeño no es negativo, no permitir que el eje baje de cero
+            if (min >= 0) {
+                finalMin = Math.max(0, finalMin);
             }
             
-            // Agregar un margen del 5%
-            const range = max - min;
-            const margin = range * 0.05;
-            
             return {
-                min: Number((min - margin).toFixed(3)),
-                max: Number((max + margin).toFixed(3))
+                min: Number(finalMin.toFixed(3)),
+                max: Number(finalMax.toFixed(3))
             };
         }
+    

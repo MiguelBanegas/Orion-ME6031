@@ -8,12 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
     <link rel="icon" href="./flaticon/ingenieria-electrica.png" type="image/x-icon"> 
     <link rel="stylesheet" href="./css/estilos2.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.10/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-chart@0.3.1/dist/xlsx-chart.min.js"></script>
     
 </head>
 <body>
@@ -124,10 +118,10 @@
                         <!-- </div> -->
                         <canvas id="graficaPF"></canvas>
                     </div>
-                    <!-- <div class="grafico-container"> -->
-                        <!-- <canvas id="graficaCosPhi" width="400" height="200"></canvas> -->
-                    <!--     <canvas id="graficaCosPhi2" width="400" height="200"></canvas> -->
-                    <!-- </div>         -->
+                    <div class="grafico-container">
+                        <canvas id="graficaCosPhi" width="400" height="200"></canvas>
+                        <!-- <canvas id="graficaCosPhi2" width="400" height="200"></canvas> -->
+                    </div>        
                                     
                 </div>
                 <div class="grafico-row">   
@@ -140,9 +134,6 @@
                         <!-- </div> -->
                         <canvas id="graficaPotenciaActiva"></canvas>
                     </div>
-                    <!-- <div class="grafico-container"> -->
-                    <!--     <canvas id="graficaCosPhi" width="400" height="200"></canvas> -->
-                    <!-- </div> -->
                 </div>
                 <div class="grafico-row">
                     <div class="grafico-container">
@@ -154,36 +145,36 @@
                         <!-- </div> -->
                         <canvas id="graficaPotenciaReactiva"></canvas>
                     </div>
-                    <!-- <div class="grafico-container"> -->
+                    <div class="grafico-container">
                         <!-- <div class="apparent-controls"> -->
                         <!--     <label><input type="checkbox" class="apparent-select" value="SA" checked> SA</label> -->
                         <!--     <label><input type="checkbox" class="apparent-select" value="SB" checked> SB</label> -->
                         <!--     <label><input type="checkbox" class="apparent-select" value="SC" checked> SC</label> -->
                         <!--     <label><input type="checkbox" class="apparent-select" value="SSum" checked> SSum</label> -->
                         <!-- </div> -->
-                   <!--      <canvas id="graficaPotenciaAparente"></canvas> -->
-                   <!--  </div> -->
+                        <canvas id="graficaPotenciaAparente"></canvas>
+                    </div>
                 </div>
-                <!-- <div class="grafico-row"> -->
-                <!--     <div class="grafico-container"> -->
+                <div class="grafico-row">
+                    <div class="grafico-container">
                         <!-- <div class="energy-active-controls"> -->
                         <!--     <label><input type="checkbox" class="energy-active-select" value="EPA" checked> EPA</label> -->
                         <!--     <label><input type="checkbox" class="energy-active-select" value="EPB" checked> EPB</label> -->
                         <!--     <label><input type="checkbox" class="energy-active-select" value="EPC" checked> EPC</label> -->
                         <!--     <label><input type="checkbox" class="energy-active-select" value="EPSum" checked> EPSum</label> -->
                         <!-- </div> -->
-                        <!-- <canvas id="graficaEnergiaActiva"></canvas> -->
-                        <!-- </div> -->
-                        <!--  <div class="grafico-container"> -->
+                        <canvas id="graficaEnergiaActiva"></canvas>
+                        </div>
+                         <div class="grafico-container">
                         <!-- <div class="energy-reactive-controls"> -->
                         <!--     <label><input type="checkbox" class="energy-reactive-select" value="EQA" checked> EQA</label> -->
                         <!--     <label><input type="checkbox" class="energy-reactive-select" value="EQB" checked> EQB</label> -->
                         <!--     <label><input type="checkbox" class="energy-reactive-select" value="EQC" checked> EQC</label> -->
                         <!--     <label><input type="checkbox" class="energy-reactive-select" value="EQSum" checked> EQSum</label> -->
                         <!-- </div> -->
-                   <!--      <canvas id="graficaEnergiaReactiva"></canvas> -->
-                   <!--  </div> -->
-                <!-- </div> -->
+                        <canvas id="graficaEnergiaReactiva"></canvas>
+                   </div>
+                </div>
             </div>
 
             <div class="table-container" id="tablaContainer">
@@ -501,6 +492,13 @@
 
         });
 
+        // Función para downsampling
+        function downsampleArray(arr, maxPoints) {
+            if (arr.length <= maxPoints) return arr;
+            const step = Math.ceil(arr.length / maxPoints);
+            return arr.filter((_, idx) => idx % step === 0);
+        }
+
         // Función para crear gráficos
         function crearGraficos(datos) {
             console.log('Iniciando creación de gráficos'); // Debug
@@ -514,11 +512,9 @@
             });
 
             // Formatear labels para mostrar solo hh:mm
-            const labels = datos.map(row => row.Time.substring(0, 5));
-            
-            // Reducir el número de labels a 15
-            const step = Math.ceil(labels.length / 15);
-            const reducedLabels = labels.filter((_, index) => index % step === 0);
+            const MAX_POINTS = 200;
+            const labels = downsampleArray(datos.map(row => row.Time.substring(0, 5)), MAX_POINTS);
+            const reducedLabels = labels;
             
             // Función para obtener el rango de valores para el eje Y
             function getYAxisRange(data, margin = 0.1) {
@@ -634,13 +630,13 @@
             }
 
             // Actualizar la configuración de los datasets para cada gráfico
-            function createDatasets(data, prefix, step) {
+            function createDatasets(data, prefix) {
                 const datasets = [];
 
                 // Agregar dataset para A
                 datasets.push({
                     label: `${prefix}A`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}A`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}A`]), MAX_POINTS),
                     borderColor: COLORS.A,
                     tension: 0.1,
                     hidden: false
@@ -648,7 +644,7 @@
                 // Agregar dataset para AB
 datasets.push({
     label: `${prefix}AB`,
-    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}AB`]),
+    data: downsampleArray(data.map(row => row[`${prefix}AB`]), MAX_POINTS),
     borderColor: COLORS.A,
     tension: 0.1,
     hidden: false
@@ -657,7 +653,7 @@ datasets.push({
                 // Agregar dataset para B
                 datasets.push({
                     label: `${prefix}B`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}B`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}B`]), MAX_POINTS),
                     borderColor: COLORS.B,
                     tension: 0.1,
                     hidden: false
@@ -666,7 +662,7 @@ datasets.push({
                 // Agregar dataset para C
                 datasets.push({
                     label: `${prefix}C`,
-                    data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}C`]),
+                    data: downsampleArray(data.map(row => row[`${prefix}C`]), MAX_POINTS),
                     borderColor: COLORS.C,
                     tension: 0.1,
                     hidden: false
@@ -676,7 +672,7 @@ datasets.push({
                 if (data.some(row => row[`${prefix}Sum`] !== undefined)) {
                     datasets.push({
                         label: `${prefix}Sum`, // Campo Ssum
-                        data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}Sum`]),
+                        data: downsampleArray(data.map(row => row[`${prefix}Sum`]), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -687,7 +683,7 @@ datasets.push({
                 if (data.some(row => row[`${prefix}Avg`] !== undefined)) {
                     datasets.push({
                         label: `${prefix}Avg`, // Campo Pfavg
-                        data: data.filter((_, index) => index % step === 0).map(row => row[`${prefix}Avg`]),
+                        data: downsampleArray(data.map(row => row[`${prefix}Avg`]), MAX_POINTS),
                         borderColor: COLORS.Avg, // Define un color para el promedio
                         tension: 0.1,
                         hidden: false
@@ -739,7 +735,7 @@ datasets.push({
             // Ejemplo de uso para un gráfico de potencia
             const configureChart = (ctx, prefix, title, chartKey) => {
                 if (ctx) {
-                    const datasets = createDatasets(datos, prefix, step);
+                    const datasets = createDatasets(datos, prefix);
                     const range = getPowerAxisRange(datasets.map(ds => ds.data));
                     const stepSize = calculateStepSize(range.min, range.max);
                     
@@ -764,7 +760,7 @@ datasets.push({
                 const UDatasets = [
                     {
                         label: 'Fase A',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UA),
+                        data: downsampleArray(datos.map(row => row.UA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         tension: 0.1,
@@ -820,7 +816,7 @@ datasets.push({
                 const uthdDatasets = [
                     {
                         label: 'Fase A',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.UTHA),
+                        data: downsampleArray(datos.map(row => row.UTHA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -875,7 +871,7 @@ datasets.push({
                 const iDatasets = [
                     {
                         label: 'Fase A',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.IA),
+                        data: downsampleArray(datos.map(row => row.IA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         tension: 0.1,
@@ -931,7 +927,7 @@ datasets.push({
                 const ithDatasets = [
                     {
                         label: 'Total',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHA),
+                        data: downsampleArray(datos.map(row => row.ITHA), MAX_POINTS),
                         backgroundColor: COLORS.cosPhiB,
                         borderColor: COLORS.cosPhiB,
                         borderWidth: 1,
@@ -939,7 +935,7 @@ datasets.push({
                     },
                     {
                         label: '3ro',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHXA),
+                        data: downsampleArray(datos.map(row => row.ITHXA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         borderWidth: 1,
@@ -947,7 +943,7 @@ datasets.push({
                     },
                     {
                         label: '5to',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHYA),
+                        data: downsampleArray(datos.map(row => row.ITHYA), MAX_POINTS),
                         backgroundColor: COLORS.B,
                         borderColor: COLORS.B,
                         borderWidth: 1,
@@ -955,7 +951,7 @@ datasets.push({
                     },
                     {
                         label: '7mo',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ITHZA),
+                        data: downsampleArray(datos.map(row => row.ITHZA), MAX_POINTS),
                         backgroundColor: COLORS.C,
                         borderColor: COLORS.C,
                         borderWidth: 1,
@@ -1011,7 +1007,7 @@ datasets.push({
             // Gráfico de Factor de Potencia
             const ctxPF = document.getElementById('graficaPF');
             //if (ctxPF) {
-            //    const pfDatasets = createDatasets(datos, 'PF', step);
+            //    const pfDatasets = createDatasets(datos, 'PF');
             //    const pfRange = getYAxisRange(pfDatasets.map(ds => ds.data));
             //    charts.pf = new Chart(ctxPF, createChartConfig(pfDatasets, 'Factor de Potencia', {
             //        min: pfRange.min,
@@ -1028,7 +1024,7 @@ datasets.push({
                 const pfDatasets = [
                     {
                         label: 'PF',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.PFA),
+                        data: downsampleArray(datos.map(row => row.PFA), MAX_POINTS),
                         backgroundColor: COLORS.A,
                         borderColor: COLORS.A,
                         tension: 0.1,
@@ -1079,54 +1075,54 @@ datasets.push({
             }            
 
             // Crear gráfico de Cos Phi
-            const ctxCosPhi = document.getElementById('graficaCosPhi2xx');
+            const ctxCosPhi = document.getElementById('graficaCosPhi');
             if (ctxCosPhi) {
                 // Crear datasets para Cos Phi
                 const cosPhiDatasets = [
                     {
                         label: 'Cos Phi A',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PA;
                             const Q = row.QA;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi B',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PB;
                             const Q = row.QB;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi C',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PC;
                             const Q = row.QC;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Cos Phi Avg',
-                        data: datos.filter((_, index) => index % step === 0).map(row => {
+                        data: downsampleArray(datos.map(row => {
                             const P = row.PSum;
                             const Q = row.QSum;
                             const S = Math.sqrt(P * P + Q * Q);
                             return S !== 0 ? Number((P / S).toFixed(3)) : 0;
-                        }),
+                        }), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -1150,31 +1146,31 @@ datasets.push({
             }
 
             // Crear el gráfico combinado
-            const ctxCombined = document.getElementById('graficaFPyCosPhixx');
-            if (ctxCombined) {
-                charts.combined = new Chart(ctxCombined, {
-                    type: 'line',
-                    data: {
-                        labels: reducedLabels,
-                        datasets: combinedDatasets
-                    },
-                    options: {
-                        scales: {
-                            y: { // Eje Y único
-                                min: 0,
-                                max: 1,
-                                ticks: {
-                                    stepSize: 0.1
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Valor'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
+            // const ctxCombined = document.getElementById('graficaFPyCosPhixx');
+            // if (ctxCombined) {
+            //     charts.combined = new Chart(ctxCombined, {
+            //         type: 'line',
+            //         data: {
+            //             labels: reducedLabels,
+            //             datasets: combinedDatasets
+            //         },
+            //         options: {
+            //             scales: {
+            //                 y: { // Eje Y único
+            //                     min: 0,
+            //                     max: 1,
+            //                     ticks: {
+            //                         stepSize: 0.1
+            //                     },
+            //                     title: {
+            //                         display: true,
+            //                         text: 'Valor'
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     });
+            // }
 
             // Gráfico de Potencia Activa (versión completa)
             const ctxPA = document.getElementById('graficaPotenciaActiva');
@@ -1182,21 +1178,21 @@ datasets.push({
                 const paDatasets = [
                     {
                         label: 'Potencia Activa W',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.PA),
+                        data: downsampleArray(datos.map(row => row.PA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Potencia Reactiva VAr',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.QA),
+                        data: downsampleArray(datos.map(row => row.QA), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Potencia Aparente VA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.SA),
+                        data: downsampleArray(datos.map(row => row.SA), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
@@ -1219,21 +1215,21 @@ datasets.push({
                 const prDatasets = [
                     {
                         label: 'Energia Activa Wh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPA),
+                        data: downsampleArray(datos.map(row => row.EPA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Energia Reactiva VArh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQA),
+                        data: downsampleArray(datos.map(row => row.EQA), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'Energia Aparente VAh',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.ESA),
+                        data: downsampleArray(datos.map(row => row.ESA), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
@@ -1251,9 +1247,9 @@ datasets.push({
             }
 
             // Gráfico de Potencia Aparente
-            const ctxPS = document.getElementById('graficaPotenciaAparentexx');
+            const ctxPS = document.getElementById('graficaPotenciaAparente');
             if (ctxPS) {
-                const psDatasets = createDatasets(datos, 'S', step);
+                const psDatasets = createDatasets(datos, 'S');
                 // Agregar log para ver los datos de psDatasets
                 console.log('Datos de psDatasets:', psDatasets);
                 const psRange = getPowerAxisRange(psDatasets.map(ds => ds.data));
@@ -1273,33 +1269,33 @@ datasets.push({
             }
 
             // Gráfico de Energía Activa
-            const ctxEP = document.getElementById('graficaEnergiaActivaxx');
+            const ctxEP = document.getElementById('graficaEnergiaActiva');
             if (ctxEP) {
                 const epDatasets = [
                     {
                         label: 'EPA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPA),
+                        data: downsampleArray(datos.map(row => row.EPA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPB),
+                        data: downsampleArray(datos.map(row => row.EPB), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPC),
+                        data: downsampleArray(datos.map(row => row.EPC), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EPSum',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EPSum),
+                        data: downsampleArray(datos.map(row => row.EPSum), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false
@@ -1317,33 +1313,33 @@ datasets.push({
             }
 
             // Gráfico de Energía Reactiva
-            const ctxEQ = document.getElementById('graficaEnergiaReactivaxx');
+            const ctxEQ = document.getElementById('graficaEnergiaReactiva');
             if (ctxEQ) {
                 const eqDatasets = [
                     {
                         label: 'EQA',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQA),
+                        data: downsampleArray(datos.map(row => row.EQA), MAX_POINTS),
                         borderColor: COLORS.A,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQB',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQB),
+                        data: downsampleArray(datos.map(row => row.EQB), MAX_POINTS),
                         borderColor: COLORS.B,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQC',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQC),
+                        data: downsampleArray(datos.map(row => row.EQC), MAX_POINTS),
                         borderColor: COLORS.C,
                         tension: 0.1,
                         hidden: false
                     },
                     {
                         label: 'EQSum',
-                        data: datos.filter((_, index) => index % step === 0).map(row => row.EQSum),
+                        data: downsampleArray(datos.map(row => row.EQSum), MAX_POINTS),
                         borderColor: COLORS.Sum,
                         tension: 0.1,
                         hidden: false

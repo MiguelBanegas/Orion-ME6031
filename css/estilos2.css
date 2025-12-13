@@ -329,8 +329,11 @@ box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         /* } */
 
         .table-container {
-            height: 500px; /* Altura para mostrar aproximadamente 20 filas */
+            display: block;
+            width: 100%;
+            max-height: 500px; /* Altura MÁXIMA para mostrar aproximadamente 20 filas */
             overflow-y: auto;
+            overflow-x: auto;
             margin: 20px 0;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -341,6 +344,7 @@ box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border-collapse: collapse;
             width: 100%;
             margin: 0; /* Quitar márgenes de la tabla */
+            table-layout: fixed; /* Nuevo: previene comportamientos extraños de ancho */
         }
 
         thead {
@@ -362,9 +366,9 @@ box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border-bottom: 1px solid #ddd;
         }
 
-        tbody tr:hover {
-            background-color: #f5f5f5;
-        }
+        /* tbody tr:hover { */
+        /*     background-color: #f5f5f5; */
+        /* } */
 
         /* Estilizar la barra de desplazamiento */
         .table-container::-webkit-scrollbar {
