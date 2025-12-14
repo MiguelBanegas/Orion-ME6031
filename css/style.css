@@ -1,0 +1,488 @@
+/* css/style.css */
+:root {
+    --primary-color: #0056b3;
+    /* Un azul corporativo más oscuro */
+    --secondary-color: #f8f9fa;
+    /* Un gris muy claro para fondos */
+    --dark-color: #212529;
+    /* Negro suave para texto y fondos oscuros */
+    --accent-color: #ffc107;
+    /* Amarillo/naranja para detalles y llamadas a la acción */
+    --light-color: #ffffff;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--dark-color);
+    padding-top: 80px;
+    /* Espacio para el navbar fijo */
+}
+
+/* --- Navbar --- */
+.navbar {
+    transition: background-color 0.3s ease-in-out;
+}
+
+.navbar-brand .logo-circle {
+    width: 48px;
+    height: 48px;
+
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+}
+
+.navbar-brand .logo-circle img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .navbar-brand .logo-circle {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.navbar-brand img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: var(--light-color);
+}
+
+/* --- Hero Section --- */
+.hero {
+    position: relative;
+    background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('../fotoPortada.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--light-color);
+    text-align: center;
+    padding: 10rem 0;
+    min-height: 100vh;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    /* oscurece */
+}
+
+.hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero .logo-circle {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--accent-color);
+    overflow: hidden;
+    /* Asegura que la imagen no se desborde */
+}
+
+.hero .logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Hace que la imagen cubra el área del círculo */
+}
+
+.hero .main-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 4.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero .subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-top: 0.5rem;
+}
+
+/* --- Sections --- */
+.section-title {
+    margin-bottom: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.service-card,
+.project-card {
+    border: none;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--light-color);
+}
+
+.service-card:hover,
+.project-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0, 86, 179, 0.2);
+}
+
+.service-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.project-card img {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+/* --- Footer --- */
+.footer {
+    background-color: var(--dark-color);
+    color: var(--secondary-color);
+}
+
+.footer h5 {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.footer a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.footer a:hover {
+    color: var(--accent-color);
+}
+
+.footer .social-icons a {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.footer-bottom {
+    background-color: rgba(0, 0, 0, 0.2);
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+/* --- Estilos para Páginas de Analizadores --- */
+
+/* Información del Equipo */
+.equipment-info {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #003d82 100%);
+    color: var(--light-color);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.equipment-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.equipment-details {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.equipment-details span {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+/* Controles */
+.controles {
+    background-color: var(--secondary-color);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+}
+
+.controles>div {
+    flex: 1;
+    min-width: 200px;
+}
+
+.controles label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.controles input[type="file"],
+.controles input[type="datetime-local"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.375rem;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color 0.2s;
+}
+
+.controles input[type="file"]:focus,
+.controles input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
+}
+
+.controles button {
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.controles button:not(.btn-primary) {
+    background-color: var(--accent-color);
+    color: var(--dark-color);
+}
+
+.controles button:not(.btn-primary):hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+}
+
+.controles .btn-primary {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
+.controles .btn-primary:hover {
+    background-color: #003d82;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.4);
+}
+
+/* Gráficos */
+.graficos {
+    margin-bottom: 2rem;
+}
+
+.grafico-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.grafico-container {
+    flex: 1;
+    min-width: 300px;
+    min-height: 480px;
+    background-color: var(--light-color);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.grafico-container:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.grafico-container canvas {
+    max-width: 100%;
+    min-height: 420px !important;
+    height: 420px !important;
+    flex: 1;
+}
+
+/* Tablas */
+.table-container {
+    background-color: var(--light-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+    margin-bottom: 2rem;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.table-container thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #003d82 100%);
+    color: var(--light-color);
+}
+
+.table-container th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.table-container td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 0.9rem;
+}
+
+.table-container tbody tr:hover {
+    background-color: rgba(0, 86, 179, 0.05);
+}
+
+.table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Loading Spinner */
+#loadingMessage {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--secondary-color);
+    border-radius: 0.5rem;
+    margin: 2rem 0;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border: 5px solid var(--secondary-color);
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+#loadingMessage p {
+    color: var(--dark-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Estilos para páginas de cálculo de corriente */
+.card {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #003d82 100%);
+    color: var(--light-color);
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    padding: 1.5rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+}
+
+.formula {
+    background-color: var(--secondary-color);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    body {
+        padding-top: 70px;
+    }
+
+    .equipment-title {
+        font-size: 1.2rem;
+    }
+
+    .equipment-details {
+        font-size: 1rem;
+    }
+
+    .controles {
+        flex-direction: column;
+    }
+
+    .controles>div {
+        width: 100%;
+    }
+
+    .grafico-row {
+        flex-direction: column;
+    }
+
+    .grafico-container {
+        min-width: 100%;
+    }
+}
