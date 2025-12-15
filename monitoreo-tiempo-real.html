@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Cache Control -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <title>Monitoreo en Tiempo Real - ORION</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Poppins:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="./flaticon/ingenieria-electrica.png"
+      type="image/x-icon"
+    />
+
+    <style>
+      .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+        animation: pulse 2s infinite;
+      }
+
+      .status-online {
+        background-color: #28a745;
+        box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+      }
+
+      .status-offline {
+        background-color: #dc3545;
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Navbar auto-hide */
+      .navbar {
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .navbar.hidden {
+        transform: translateY(-100%);
+      }
+
+      body {
+        padding-top: 0 !important;
+      }
+
+      .metric-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border-radius: 0.3rem;
+        padding: 0.3rem 0.6rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 0.4rem;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 12px rgba(0, 86, 179, 0.15);
+      }
+
+      .metric-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0.15rem 0;
+      }
+
+      .metric-label {
+        font-size: 0.65rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+      }
+
+      .metric-unit {
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 500;
+      }
+
+      .last-update {
+        font-size: 0.75rem;
+        color: #ffc107;
+        margin-top: 0.3rem;
+        font-weight: 500;
+      }
+
+      .grafico-container {
+        max-height: 280px;
+        margin-bottom: 0.5rem;
+      }
+
+      .grafico-container h6 {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem !important;
+      }
+
+      .grafico-container canvas {
+        max-height: 250px !important;
+        height: 250px !important;
+      }
+
+      .equipment-info {
+        padding: 0.4rem 1rem;
+        margin-bottom: 0.5rem;
+        margin-top: 100px;
+      }
+
+      .equipment-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.15rem;
+      }
+
+      .equipment-details {
+        font-size: 0.75rem;
+        margin-bottom: 0.15rem;
+      }
+
+      .alert-info {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"
+      id="mainNavbar"
+    >
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+          <div class="logo-circle me-2">
+            <img src="./electricidad.png" alt="Logo Orión" />
+          </div>
+          ORION
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="#">Monitoreo en Tiempo Real</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+      <!-- Equipment Info -->
+      <div class="equipment-info">
+        <h1 class="equipment-title">
+          <i class="fas fa-chart-line me-2"></i>Monitoreo en Tiempo Real
+        </h1>
+        <p class="equipment-details">
+          <span
+            id="statusIndicator"
+            class="status-indicator status-offline"
+          ></span>
+          <span id="statusText">Conectando...</span>
+        </p>
+        <p class="last-update">
+          Última actualización: <span id="lastUpdate">--</span>
+        </p>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="metric-card text-center">
+            <div class="metric-label">
+              <i class="fas fa-bolt me-2"></i>Tensión Fase A
+            </div>
+            <div class="metric-value">
+              <span id="currentVoltage">--</span>
+              <span class="metric-unit">V</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="metric-card text-center">
+            <div class="metric-label">
+              <i class="fas fa-wave-square me-2"></i>Corriente Fase A
+            </div>
+            <div class="metric-value">
+              <span id="currentCurrent">--</span>
+              <span class="metric-unit">A</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="graficos">
+        <div class="grafico-row">
+          <!-- Voltage Chart -->
+          <div class="grafico-container">
+            <h6 class="text-center mb-3">
+              <i class="fas fa-bolt me-2"></i>Tensión Fase A (UAB)
+            </h6>
+            <canvas id="voltageChart"></canvas>
+          </div>
+
+          <!-- Current Chart -->
+          <div class="grafico-container">
+            <h6 class="text-center mb-3">
+              <i class="fas fa-wave-square me-2"></i>Corriente Fase A (IA)
+            </h6>
+            <canvas id="currentChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Alert -->
+      <div class="alert alert-info" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        Los datos se actualizan automáticamente cada 30 segundos desde la API.
+        Se muestran los últimos 30 registros en los gráficos.
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+      // API Configuration
+      const API_URL =
+        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=30";
+      const UPDATE_INTERVAL = 30000; // 30 segundos
+
+      // Chart Configuration
+      const chartConfig = {
+        type: "line",
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 750,
+            easing: "easeInOutQuart",
+          },
+          interaction: {
+            intersect: false,
+            mode: "index",
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              labels: {
+                font: {
+                  family: "Poppins",
+                  size: 12,
+                },
+              },
+            },
+            tooltip: {
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              titleFont: {
+                family: "Poppins",
+                size: 14,
+              },
+              bodyFont: {
+                family: "Poppins",
+                size: 12,
+              },
+              padding: 12,
+              cornerRadius: 8,
+            },
+          },
+          scales: {
+            x: {
+              display: false, // Ocultar completamente el eje X para aprovechar más altura
+              grid: {
+                display: false,
+              },
+            },
+            y: {
+              beginAtZero: false,
+              grid: {
+                display: true,
+                color: "rgba(0, 0, 0, 0.05)",
+              },
+              ticks: {
+                font: {
+                  family: "Poppins",
+                  size: 10,
+                },
+              },
+              // Las escalas se ajustarán dinámicamente
+              suggestedMin: undefined,
+              suggestedMax: undefined,
+            },
+          },
+        },
+      };
+
+      // Initialize Voltage Chart
+      const voltageCtx = document
+        .getElementById("voltageChart")
+        .getContext("2d");
+      const voltageChart = new Chart(voltageCtx, {
+        ...chartConfig,
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "UAB (V)",
+              data: [],
+              borderColor: "#0056b3",
+              backgroundColor: "rgba(0, 86, 179, 0.1)",
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              pointBackgroundColor: "#0056b3",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+            },
+          ],
+        },
+      });
+
+      // Initialize Current Chart
+      const currentCtx = document
+        .getElementById("currentChart")
+        .getContext("2d");
+      const currentChart = new Chart(currentCtx, {
+        ...chartConfig,
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "IA (A)",
+              data: [],
+              borderColor: "#ffc107",
+              backgroundColor: "rgba(255, 193, 7, 0.1)",
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              pointBackgroundColor: "#ffc107",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+            },
+          ],
+        },
+      });
+
+      // Format timestamp
+      function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      // Format full date
+      function formatFullDate(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleString("es-AR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      // Update status indicator
+      function updateStatus(isOnline) {
+        const indicator = document.getElementById("statusIndicator");
+        const statusText = document.getElementById("statusText");
+
+        if (isOnline) {
+          indicator.className = "status-indicator status-online";
+          statusText.textContent = "Conectado";
+        } else {
+          indicator.className = "status-indicator status-offline";
+          statusText.textContent = "Sin conexión";
+        }
+      }
+
+      // Fetch data from API
+      async function fetchData() {
+        try {
+          const response = await fetch(API_URL);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data && data.length > 0) {
+            updateCharts(data);
+            updateStatus(true);
+
+            // Update last update time
+            const lastUpdate = document.getElementById("lastUpdate");
+            lastUpdate.textContent = formatFullDate(new Date());
+
+            // Sort data to get the most recent value (last in chronological order)
+            const sortedData = [...data].sort(
+              (a, b) => new Date(a.ts) - new Date(b.ts)
+            );
+            const latestData = sortedData[sortedData.length - 1];
+
+            // Update current values with the most recent data
+            document.getElementById("currentVoltage").textContent =
+              latestData.uab ? latestData.uab.toFixed(1) : "--";
+            document.getElementById("currentCurrent").textContent =
+              latestData.ia ? latestData.ia.toFixed(1) : "--";
+          } else {
+            console.warn("No data received from API");
+            updateStatus(false);
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          updateStatus(false);
+        }
+      }
+
+      // Calculate dynamic scale limits
+      function calculateScaleLimits(data) {
+        // Filter out null values
+        const validData = data.filter(
+          (val) => val !== null && val !== undefined
+        );
+
+        if (validData.length === 0) {
+          return { min: 0, max: 100 };
+        }
+
+        const min = Math.min(...validData);
+        const max = Math.max(...validData);
+        const range = max - min;
+
+        // Add 10% margin on both sides
+        const margin = range * 0.1;
+
+        return {
+          min: Math.floor(min - margin),
+          max: Math.ceil(max + margin),
+        };
+      }
+
+      // Update charts with new data
+      function updateCharts(data) {
+        // Sort data by timestamp (oldest to newest) to show chronologically
+        const sortedData = [...data].sort(
+          (a, b) => new Date(a.ts) - new Date(b.ts)
+        );
+
+        // Extract labels (timestamps) and values
+        const labels = sortedData.map((item) => formatTimestamp(item.ts));
+        const voltageData = sortedData.map((item) => item.uab || null);
+        const currentData = sortedData.map((item) => item.ia || null);
+
+        // Calculate dynamic scales
+        const voltageLimits = calculateScaleLimits(voltageData);
+        const currentLimits = calculateScaleLimits(currentData);
+
+        // Update Voltage Chart
+        voltageChart.data.labels = labels;
+        voltageChart.data.datasets[0].data = voltageData;
+        voltageChart.options.scales.y.min = voltageLimits.min;
+        voltageChart.options.scales.y.max = voltageLimits.max;
+        voltageChart.update("none"); // Update without animation for smoother transitions
+
+        // Update Current Chart
+        currentChart.data.labels = labels;
+        currentChart.data.datasets[0].data = currentData;
+        currentChart.options.scales.y.min = currentLimits.min;
+        currentChart.options.scales.y.max = currentLimits.max;
+        currentChart.update("none");
+      }
+
+      // Initial fetch
+      fetchData();
+
+      // Set up periodic updates
+      setInterval(fetchData, UPDATE_INTERVAL);
+
+      // Update status on page visibility change
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          fetchData();
+        }
+      });
+      // Navbar auto-hide on scroll
+      let lastScrollTop = 0;
+      const navbar = document.getElementById("mainNavbar");
+      const scrollThreshold = 50;
+
+      window.addEventListener("scroll", () => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > scrollThreshold) {
+          if (scrollTop > lastScrollTop) {
+            navbar.classList.add("hidden");
+          } else {
+            navbar.classList.remove("hidden");
+          }
+        } else {
+          navbar.classList.remove("hidden");
+        }
+        lastScrollTop = scrollTop;
+      });
+    </script>
+  </body>
+</html>
