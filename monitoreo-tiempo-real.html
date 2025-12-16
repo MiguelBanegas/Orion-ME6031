@@ -475,18 +475,26 @@
           const data = await response.json();
 
           if (data && data.length > 0) {
-            updateCharts(data);
-            updateStatus(true);
-
-            // Update last update time
-            const lastUpdate = document.getElementById("lastUpdate");
-            lastUpdate.textContent = formatFullDate(new Date());
-
-            // Sort data to get the most recent value (last in chronological order)
+            // Sort data to get the most recent value
             const sortedData = [...data].sort(
               (a, b) => new Date(a.ts) - new Date(b.ts)
             );
             const latestData = sortedData[sortedData.length - 1];
+
+            // Check if device is online based on timestamp
+            const lastTimestamp = new Date(latestData.ts);
+            const now = new Date();
+            const timeDifferenceMinutes = (now - lastTimestamp) / (1000 * 60);
+
+            // Consider online if last record is less than 2 minutes old
+            const isOnline = timeDifferenceMinutes < 2;
+
+            updateCharts(data);
+            updateStatus(isOnline);
+
+            // Update last update time
+            const lastUpdate = document.getElementById("lastUpdate");
+            lastUpdate.textContent = formatFullDate(new Date());
 
             // Update current values with the most recent data
             document.getElementById("currentVoltage").textContent =
