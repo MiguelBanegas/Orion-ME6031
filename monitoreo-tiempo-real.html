@@ -271,8 +271,12 @@
             <span id="onTime">00:00:00</span>
           </div>
           <div class="stat-item stat-offline">
-            <span class="stat-label">Offline:</span>
-            <span id="offTime">00:00:00</span>
+            <span class="stat-label">Último Offline:</span>
+            <span id="lastOffTime">00:00:00</span>
+          </div>
+          <div class="stat-item stat-offline">
+            <span class="stat-label">Total Offline:</span>
+            <span id="totalOffTime">00:00:00</span>
           </div>
         </div>
         <p class="last-update">
@@ -347,9 +351,16 @@
     <script>
       // API Configuration
       const API_URL =
-        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=50"; // Aumentado para cubrir 10 min
+        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=100"; // Aumentado para mayor historial
       const UPDATE_INTERVAL = 5000; // 5 segundos
-      const TIME_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+      const TIME_WINDOW_MS = 10 * 60 * 1000; // 10 minutos para el gráfico
+
+      // Uptime State variables
+      let currentSessionStatus = null; // 'online' or 'offline'
+      let statusStartTime = Date.now();
+      let lastOfflineDuration = 0;
+      let totalOfflineMs = 0;
+      let lastCheckTimestamp = Date.now();
 
       // Chart Configuration
       const chartConfig = {
@@ -528,9 +539,9 @@
           }
 
           const data = await response.json();
+          const now = Date.now();
 
           if (data && data.length > 0) {
-            // Sort data to get the most recent value
             const sortedData = [...data].sort(
               (a, b) => new Date(a.ts) - new Date(b.ts)
             );
@@ -538,13 +549,13 @@
 
             // Check if device is online based on timestamp
             const lastTimestamp = new Date(latestData.ts);
-            const now = new Date();
-            const timeDifferenceMinutes = (now - lastTimestamp) / (1000 * 60);
+            const timeDifferenceSeconds = (now - lastTimestamp) / 1000;
 
-            // Consider online if last record is less than 45 seconds old (0.75 min)
-            // Esto lo hace más sensible dado que actualizas cada 5 segundos.
-            const isOnline = timeDifferenceMinutes < 0.75;
+            // Consider online if last record is less than 60 seconds old
+            const isOnline = timeDifferenceSeconds < 60;
 
+            // Update Status and Uptime Logic
+            updateUptimeMetrics(isOnline, now);
             updateCharts(data);
             updateStatus(isOnline);
 
@@ -552,19 +563,62 @@
             const lastUpdate = document.getElementById("lastUpdate");
             lastUpdate.textContent = formatFullDate(new Date());
 
-            // Update current values with the most recent data
+            // Update current values
             document.getElementById("currentVoltage").textContent =
               latestData.uab ? latestData.uab.toFixed(1) : "--";
             document.getElementById("currentCurrent").textContent =
               latestData.ia ? latestData.ia.toFixed(1) : "--";
           } else {
             console.warn("No data received from API");
+            updateUptimeMetrics(false, now);
             updateStatus(false);
           }
+          lastCheckTimestamp = now;
         } catch (error) {
           console.error("Error fetching data:", error);
+          const now = Date.now();
+          updateUptimeMetrics(false, now);
           updateStatus(false);
+          lastCheckTimestamp = now;
         }
+      }
+
+      function updateUptimeMetrics(isOnline, now) {
+        const newStatus = isOnline ? "online" : "offline";
+
+        // If status changed
+        if (currentSessionStatus !== newStatus) {
+          if (currentSessionStatus === "offline" && newStatus === "online") {
+            // Just came back online
+            lastOfflineDuration = (now - statusStartTime) / 1000;
+          }
+          currentSessionStatus = newStatus;
+          statusStartTime = now;
+        }
+
+        // Increment total offline if we are currently offline
+        if (currentSessionStatus === "offline") {
+          totalOfflineMs += now - lastCheckTimestamp;
+        }
+
+        // Update UI
+        const onTimeDisplay = document.getElementById("onTime");
+        const lastOffDisplay = document.getElementById("lastOffTime");
+        const totalOffDisplay = document.getElementById("totalOffTime");
+
+        if (isOnline) {
+          const connectedSince = (now - statusStartTime) / 1000;
+          onTimeDisplay.textContent = formatDuration(Math.floor(connectedSince));
+        } else {
+          onTimeDisplay.textContent = "00:00:00";
+        }
+
+        lastOffDisplay.textContent = formatDuration(
+          Math.floor(lastOfflineDuration)
+        );
+        totalOffDisplay.textContent = formatDuration(
+          Math.floor(totalOfflineMs / 1000)
+        );
       }
 
       // Calculate dynamic scale limits
@@ -606,19 +660,8 @@
           return now - itemDate <= TIME_WINDOW_MS;
         });
 
-        // Calculate Stats based on BD records
-        // Cada registro = 30 segundos Online
-        const recordCount = sortedData.length;
-        const onlineSeconds = Math.min(recordCount * 30, TIME_WINDOW_MS / 1000);
-        const offlineSeconds = Math.max(
-          0,
-          TIME_WINDOW_MS / 1000 - onlineSeconds
-        );
-
-        document.getElementById("onTime").textContent =
-          formatDuration(onlineSeconds);
-        document.getElementById("offTime").textContent =
-          formatDuration(offlineSeconds);
+        // Los cálculos estadísticos previos basados en conteo de registros se han movido a updateUptimeMetrics
+        // para un seguimiento más preciso del tiempo real de sesión.
 
         // Extract labels (timestamps) and values
         const labels = sortedData.map((item) => formatTimestamp(item.ts));
