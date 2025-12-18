@@ -178,6 +178,39 @@
         padding-top: 1rem !important;
         padding-bottom: 1rem !important;
       }
+
+      .uptime-stats {
+        display: flex;
+        gap: 15px;
+        margin-top: 5px;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .stat-online {
+        color: #28a745;
+        border-left: 3px solid #28a745;
+      }
+
+      .stat-offline {
+        color: #dc3545;
+        border-left: 3px solid #dc3545;
+      }
+
+      .stat-label {
+        margin-right: 5px;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+      }
     </style>
   </head>
   <body>
@@ -232,6 +265,16 @@
           ></span>
           <span id="statusText">Conectando...</span>
         </p>
+        <div class="uptime-stats">
+          <div class="stat-item stat-online">
+            <span class="stat-label">Online:</span>
+            <span id="onTime">00:00:00</span>
+          </div>
+          <div class="stat-item stat-offline">
+            <span class="stat-label">Offline:</span>
+            <span id="offTime">00:00:00</span>
+          </div>
+        </div>
         <p class="last-update">
           Última actualización: <span id="lastUpdate">--</span>
         </p>
@@ -287,8 +330,9 @@
       <!-- Info Alert -->
       <div class="alert alert-info" role="alert">
         <i class="fas fa-info-circle me-2"></i>
-        Los datos se actualizan automáticamente cada 30 segundos desde la API.
-        Se muestran los últimos 30 registros en los gráficos.
+        Los datos se actualizan automáticamente cada 5 segundos. Los gráficos
+        muestran únicamente los registros de los últimos 10 minutos para
+        garantizar información en tiempo real.
       </div>
     </div>
 
@@ -303,8 +347,9 @@
     <script>
       // API Configuration
       const API_URL =
-        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=30";
-      const UPDATE_INTERVAL = 30000; // 30 segundos
+        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=50"; // Aumentado para cubrir 10 min
+      const UPDATE_INTERVAL = 5000; // 5 segundos
+      const TIME_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
 
       // Chart Configuration
       const chartConfig = {
@@ -449,6 +494,16 @@
         });
       }
 
+      // Format seconds to HH:MM:SS
+      function formatDuration(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [hours, minutes, seconds]
+          .map((v) => (v < 10 ? "0" + v : v))
+          .join(":");
+      }
+
       // Update status indicator
       function updateStatus(isOnline) {
         const indicator = document.getElementById("statusIndicator");
@@ -486,8 +541,9 @@
             const now = new Date();
             const timeDifferenceMinutes = (now - lastTimestamp) / (1000 * 60);
 
-            // Consider online if last record is less than 2 minutes old
-            const isOnline = timeDifferenceMinutes < 2;
+            // Consider online if last record is less than 45 seconds old (0.75 min)
+            // Esto lo hace más sensible dado que actualizas cada 5 segundos.
+            const isOnline = timeDifferenceMinutes < 0.75;
 
             updateCharts(data);
             updateStatus(isOnline);
@@ -537,10 +593,32 @@
 
       // Update charts with new data
       function updateCharts(data) {
-        // Sort data by timestamp (oldest to newest) to show chronologically
-        const sortedData = [...data].sort(
+        const now = Date.now();
+
+        // Sort data by timestamp (oldest to newest)
+        let sortedData = [...data].sort(
           (a, b) => new Date(a.ts) - new Date(b.ts)
         );
+
+        // Filter data to only show the last 10 minutes
+        sortedData = sortedData.filter((item) => {
+          const itemDate = new Date(item.ts);
+          return now - itemDate <= TIME_WINDOW_MS;
+        });
+
+        // Calculate Stats based on BD records
+        // Cada registro = 30 segundos Online
+        const recordCount = sortedData.length;
+        const onlineSeconds = Math.min(recordCount * 30, TIME_WINDOW_MS / 1000);
+        const offlineSeconds = Math.max(
+          0,
+          TIME_WINDOW_MS / 1000 - onlineSeconds
+        );
+
+        document.getElementById("onTime").textContent =
+          formatDuration(onlineSeconds);
+        document.getElementById("offTime").textContent =
+          formatDuration(offlineSeconds);
 
         // Extract labels (timestamps) and values
         const labels = sortedData.map((item) => formatTimestamp(item.ts));
