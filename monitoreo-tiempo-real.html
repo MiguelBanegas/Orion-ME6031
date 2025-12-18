@@ -350,17 +350,17 @@
     <!-- Custom JavaScript -->
     <script>
       // API Configuration
-      const API_URL =
-        "https://api.orion.mabcontrol.ar/api/energy?device_id=1&limit=100"; // Aumentado para mayor historial
-      const UPDATE_INTERVAL = 5000; // 5 segundos
-      const TIME_WINDOW_MS = 10 * 60 * 1000; // 10 minutos para el gráfico
+      const API_URL_BASE =
+        "https://api.orion.mabcontrol.ar/api/energy?device_id=1";
+      const UPDATE_INTERVAL = 5000;
+      const TIME_WINDOW_MS = 10 * 60 * 1000;
+      const GAP_THRESHOLD_MS = 90 * 1000;
 
-      // Uptime State variables
-      let currentSessionStatus = null; // 'online' or 'offline'
-      let statusStartTime = Date.now();
-      let lastOfflineDuration = 0;
-      let totalOfflineMs = 0;
-      let lastCheckTimestamp = Date.now();
+      // State variables
+      let detectedSessionStart = null;
+      let detectedLastOfflineDuration = 0;
+      let lastKnownStatus = "unknown"; // 'online', 'offline', 'unknown'
+      let isFirstLoad = true;
 
       // Chart Configuration
       const chartConfig = {
@@ -529,14 +529,16 @@
         }
       }
 
-      // Fetch data from API
+      // Main Fetch Logic with Adaptive Strategy
       async function fetchData() {
         try {
-          const response = await fetch(API_URL);
+          // Determine mode: Heavy fetch if first load, otherwise Light fetch
+          const limit = isFirstLoad ? 1000 : 100;
+          const url = `${API_URL_BASE}&limit=${limit}`;
 
-          if (!response.ok) {
+          const response = await fetch(url);
+          if (!response.ok)
             throw new Error(`HTTP error! status: ${response.status}`);
-          }
 
           const data = await response.json();
           const now = Date.now();
@@ -547,78 +549,126 @@
             );
             const latestData = sortedData[sortedData.length - 1];
 
-            // Check if device is online based on timestamp
-            const lastTimestamp = new Date(latestData.ts);
+            // 1. Determine Current Status
+            const lastTimestamp = new Date(latestData.ts).getTime();
             const timeDifferenceSeconds = (now - lastTimestamp) / 1000;
-
-            // Consider online if last record is less than 60 seconds old
             const isOnline = timeDifferenceSeconds < 60;
+            const currentStatus = isOnline ? "online" : "offline";
 
-            // Update Status and Uptime Logic
-            updateUptimeMetrics(isOnline, now);
+            // 2. Adaptive Logic: Check for Reconnection
+            if (
+              !isFirstLoad &&
+              lastKnownStatus === "offline" &&
+              currentStatus === "online"
+            ) {
+              console.log("Reconnection detected! Triggering deep analysis...");
+              // Recursive call with forced heavy load to recalculate gaps correctly
+              waitAndHeavyFetch();
+            }
+
+            // 3. Process Data
+            // We only run the heavy GAP analysis if we fetched enough data (limit > 100)
+            // Otherwise, we just maintain the previous sessionStart and add time to it.
+            if (data.length > 150) {
+              analyzeHistoryForGaps(sortedData);
+            }
+
             updateCharts(data);
             updateStatus(isOnline);
+            updateUptimeDisplay(isOnline, now);
 
-            // Update last update time
+            // Update Metrics
             const lastUpdate = document.getElementById("lastUpdate");
             lastUpdate.textContent = formatFullDate(new Date());
-
-            // Update current values
             document.getElementById("currentVoltage").textContent =
               latestData.uab ? latestData.uab.toFixed(1) : "--";
             document.getElementById("currentCurrent").textContent =
               latestData.ia ? latestData.ia.toFixed(1) : "--";
+
+            // Update State
+            lastKnownStatus = currentStatus;
+            isFirstLoad = false;
           } else {
-            console.warn("No data received from API");
-            updateUptimeMetrics(false, now);
+            console.warn("No data received");
             updateStatus(false);
+            lastKnownStatus = "offline";
           }
-          lastCheckTimestamp = now;
         } catch (error) {
           console.error("Error fetching data:", error);
-          const now = Date.now();
-          updateUptimeMetrics(false, now);
           updateStatus(false);
-          lastCheckTimestamp = now;
+          lastKnownStatus = "offline";
         }
       }
 
-      function updateUptimeMetrics(isOnline, now) {
-        const newStatus = isOnline ? "online" : "offline";
-
-        // If status changed
-        if (currentSessionStatus !== newStatus) {
-          if (currentSessionStatus === "offline" && newStatus === "online") {
-            // Just came back online
-            lastOfflineDuration = (now - statusStartTime) / 1000;
+      async function waitAndHeavyFetch() {
+        // Small delay to ensure DB has the new record committed
+        setTimeout(async () => {
+          const url = `${API_URL_BASE}&limit=1000`;
+          try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.length > 0) {
+              const sorted = [...data].sort(
+                (a, b) => new Date(a.ts) - new Date(b.ts)
+              );
+              analyzeHistoryForGaps(sorted);
+            }
+          } catch (e) {
+            console.error("Heavy fetch failed", e);
           }
-          currentSessionStatus = newStatus;
-          statusStartTime = now;
+        }, 2000);
+      }
+
+      function analyzeHistoryForGaps(sortedData) {
+        // Iterate descending to find the first GAP
+        const sortedDesc = [...sortedData].reverse();
+        let foundGap = false;
+
+        // Default: If no gap found, session start is the oldest record visible
+        let sessionStartTs = new Date(
+          sortedDesc[sortedDesc.length - 1].ts
+        ).getTime();
+
+        for (let i = 0; i < sortedDesc.length - 1; i++) {
+          const currentTs = new Date(sortedDesc[i].ts).getTime();
+          const prevTs = new Date(sortedDesc[i + 1].ts).getTime();
+
+          if (currentTs - prevTs > GAP_THRESHOLD_MS) {
+            sessionStartTs = currentTs;
+            detectedLastOfflineDuration = currentTs - prevTs;
+            foundGap = true;
+            break;
+          }
         }
 
-        // Increment total offline if we are currently offline
-        if (currentSessionStatus === "offline") {
-          totalOfflineMs += now - lastCheckTimestamp;
-        }
+        detectedSessionStart = sessionStartTs;
+        // If we processed a heavy batch but found no gap, we can imply "> 8h"
+        // logic handled in display
+      }
 
-        // Update UI
+      function updateUptimeDisplay(isOnline, now) {
         const onTimeDisplay = document.getElementById("onTime");
         const lastOffDisplay = document.getElementById("lastOffTime");
         const totalOffDisplay = document.getElementById("totalOffTime");
 
-        if (isOnline) {
-          const connectedSince = (now - statusStartTime) / 1000;
-          onTimeDisplay.textContent = formatDuration(Math.floor(connectedSince));
+        if (isOnline && detectedSessionStart) {
+          const uptimeMs = now - detectedSessionStart;
+          onTimeDisplay.textContent = formatDuration(
+            Math.floor(uptimeMs / 1000)
+          );
         } else {
-          onTimeDisplay.textContent = "00:00:00";
+          onTimeDisplay.textContent = isOnline ? "Calculando..." : "Offline";
         }
 
-        lastOffDisplay.textContent = formatDuration(
-          Math.floor(lastOfflineDuration)
-        );
-        totalOffDisplay.textContent = formatDuration(
-          Math.floor(totalOfflineMs / 1000)
-        );
+        if (detectedLastOfflineDuration > 0) {
+          lastOffDisplay.textContent = formatDuration(
+            Math.floor(detectedLastOfflineDuration / 1000)
+          );
+        } else {
+          lastOffDisplay.textContent = "00:00:00";
+        }
+
+        totalOffDisplay.parentElement.style.display = "none";
       }
 
       // Calculate dynamic scale limits
