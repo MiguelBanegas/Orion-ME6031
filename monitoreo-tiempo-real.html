@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -100,7 +100,9 @@
         border-radius: 0.3rem;
         padding: 0.3rem 0.6rem;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
         margin-bottom: 0.4rem;
       }
 
@@ -343,6 +345,41 @@
       </div>
     </div>
 
+    <!-- Modal para Vista Ampliada de Gráficos -->
+    <div
+      class="modal fade"
+      id="graphModal"
+      tabindex="-1"
+      aria-labelledby="graphModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="graphModalLabel">Vista Ampliada</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <canvas id="modalCanvas"></canvas>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -360,6 +397,8 @@
       const GAP_THRESHOLD_MS = 90 * 1000;
 
       // State variables
+      const GAP_THRESHOLD_MS = 90 * 1000;
+      const charts = {}; // Objeto para almacenar instancias de gráficos
       let detectedSessionStart = null;
       let detectedLastOfflineDuration = 0;
       let lastKnownStatus = "unknown"; // 'online', 'offline', 'unknown'
@@ -435,7 +474,7 @@
       const voltageCtx = document
         .getElementById("voltageChart")
         .getContext("2d");
-      const voltageChart = new Chart(voltageCtx, {
+      charts["voltageChart"] = new Chart(voltageCtx, {
         ...chartConfig,
         data: {
           labels: [],
@@ -462,7 +501,7 @@
       const currentCtx = document
         .getElementById("currentChart")
         .getContext("2d");
-      const currentChart = new Chart(currentCtx, {
+      charts["currentChart"] = new Chart(currentCtx, {
         ...chartConfig,
         data: {
           labels: [],
@@ -548,7 +587,7 @@
 
           if (data && data.length > 0) {
             const sortedData = [...data].sort(
-              (a, b) => new Date(a.ts) - new Date(b.ts)
+              (a, b) => new Date(a.ts) - new Date(b.ts),
             );
             const latestData = sortedData[sortedData.length - 1];
 
@@ -612,7 +651,7 @@
             const data = await res.json();
             if (data && data.length > 0) {
               const sorted = [...data].sort(
-                (a, b) => new Date(a.ts) - new Date(b.ts)
+                (a, b) => new Date(a.ts) - new Date(b.ts),
               );
               analyzeHistoryForGaps(sorted);
             }
@@ -629,7 +668,7 @@
 
         // Default: If no gap found, session start is the oldest record visible
         let sessionStartTs = new Date(
-          sortedDesc[sortedDesc.length - 1].ts
+          sortedDesc[sortedDesc.length - 1].ts,
         ).getTime();
 
         for (let i = 0; i < sortedDesc.length - 1; i++) {
@@ -657,7 +696,7 @@
         if (isOnline && detectedSessionStart) {
           const uptimeMs = now - detectedSessionStart;
           onTimeDisplay.textContent = formatDuration(
-            Math.floor(uptimeMs / 1000)
+            Math.floor(uptimeMs / 1000),
           );
         } else {
           onTimeDisplay.textContent = isOnline ? "Calculando..." : "Offline";
@@ -665,7 +704,7 @@
 
         if (detectedLastOfflineDuration > 0) {
           lastOffDisplay.textContent = formatDuration(
-            Math.floor(detectedLastOfflineDuration / 1000)
+            Math.floor(detectedLastOfflineDuration / 1000),
           );
         } else {
           lastOffDisplay.textContent = "00:00:00";
@@ -678,7 +717,7 @@
       function calculateScaleLimits(data) {
         // Filter out null values
         const validData = data.filter(
-          (val) => val !== null && val !== undefined
+          (val) => val !== null && val !== undefined,
         );
 
         if (validData.length === 0) {
@@ -704,7 +743,7 @@
 
         // Sort data by timestamp (oldest to newest)
         let sortedData = [...data].sort(
-          (a, b) => new Date(a.ts) - new Date(b.ts)
+          (a, b) => new Date(a.ts) - new Date(b.ts),
         );
 
         // Filter data to only show the last 10 minutes
@@ -743,8 +782,61 @@
       // Initial fetch
       fetchData();
 
+      // Inicializar eventos para vista ampliada
+      inicializarEventosGraficos();
+
       // Set up periodic updates
       setInterval(fetchData, UPDATE_INTERVAL);
+
+      // Función para inicializar eventos de clic en los gráficos
+      function inicializarEventosGraficos() {
+        const canvases = document.querySelectorAll(".grafico-container canvas");
+        const modalElement = document.getElementById("graphModal");
+        const modalCanvas = document.getElementById("modalCanvas");
+
+        if (!modalElement || !modalCanvas) return;
+
+        let modalChart = null;
+
+        canvases.forEach((canvas) => {
+          canvas.onclick = function () {
+            const chartId = canvas.id;
+            const originalChart = charts[chartId] || Chart.getChart(canvas);
+
+            if (!originalChart) return;
+
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            bsModal.show();
+
+            const existingChart = Chart.getChart(modalCanvas);
+            if (existingChart) {
+              existingChart.destroy();
+            }
+
+            const onShown = function () {
+              const ctx = modalCanvas.getContext("2d");
+              new Chart(ctx, {
+                type: originalChart.config.type,
+                data: originalChart.config.data,
+                options: {
+                  ...originalChart.config.options,
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    ...originalChart.config.options.plugins,
+                    legend: {
+                      ...originalChart.config.options.plugins?.legend,
+                      display: true,
+                    },
+                  },
+                },
+              });
+              modalElement.removeEventListener("shown.bs.modal", onShown);
+            };
+            modalElement.addEventListener("shown.bs.modal", onShown);
+          };
+        });
+      }
 
       // Update status on page visibility change
       document.addEventListener("visibilitychange", () => {

@@ -20,7 +20,7 @@ document.getElementById("csvFile").addEventListener("change", function (e) {
   const isValidSuffix = fileName.includes("3P3W");
   if (!isValidExtension || !isValidSuffix) {
     alert(
-      'Por favor, selecciona un archivo que contenga "3P3W" en su nombre y termine en .csv.'
+      'Por favor, selecciona un archivo que contenga "3P3W" en su nombre y termine en .csv.',
     );
     return;
   }
@@ -51,7 +51,7 @@ document.getElementById("csvFile").addEventListener("change", function (e) {
       console.log(
         "Worker completado. Recibidos",
         payload.datos.length,
-        "registros."
+        "registros.",
       );
       datos = payload.datos;
       datosActivos = datos;
@@ -95,11 +95,11 @@ function actualizarUIMostrarResultados(serialNumber, datosProcesados) {
 
       const fechaInicio = formatearFechaHora(
         primerRegistro.Date,
-        primerRegistro.Time
+        primerRegistro.Time,
       );
       const fechaFin = formatearFechaHora(
         ultimoRegistro.Date,
-        ultimoRegistro.Time
+        ultimoRegistro.Time,
       );
 
       if (fechaInicio && fechaFin) {
@@ -236,7 +236,7 @@ if (aplicarFiltro) {
 
         datosActivos = datos.filter((row) => {
           const fechaRegistro = new Date(
-            formatearFechaHora(row.Date, row.Time)
+            formatearFechaHora(row.Date, row.Time),
           );
           return fechaRegistro >= startDate && fechaRegistro <= endDate;
         });
@@ -272,11 +272,11 @@ if (resetFiltro) {
 
       document.getElementById("fechaInicio").value = formatearFechaHora(
         primerRegistro.Date,
-        primerRegistro.Time
+        primerRegistro.Time,
       );
       document.getElementById("fechaFin").value = formatearFechaHora(
         ultimoRegistro.Date,
-        ultimoRegistro.Time
+        ultimoRegistro.Time,
       );
     }
 
@@ -321,7 +321,7 @@ function crearGraficos(datos) {
   const MAX_POINTS = 200;
   const labels = downsampleArray(
     datos.map((row) => (row.Time ? row.Time.substring(0, 5) : "")),
-    MAX_POINTS
+    MAX_POINTS,
   );
 
   const COLORS = {
@@ -344,7 +344,7 @@ function crearGraficos(datos) {
         label: "UAB",
         data: downsampleArray(
           datos.map((row) => row.UAB),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.A,
         tension: 0.1,
@@ -354,7 +354,7 @@ function crearGraficos(datos) {
         label: "UBC",
         data: downsampleArray(
           datos.map((row) => row.UBC),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.B,
         tension: 0.1,
@@ -364,7 +364,7 @@ function crearGraficos(datos) {
         label: "UCA",
         data: downsampleArray(
           datos.map((row) => row.UCA),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.C,
         tension: 0.1,
@@ -374,7 +374,7 @@ function crearGraficos(datos) {
         label: "UAvg",
         data: downsampleArray(
           datos.map((row) => row.UAvg),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.Sum,
         tension: 0.1,
@@ -382,7 +382,7 @@ function crearGraficos(datos) {
       },
     ];
     const voltageRange = getYAxisRange(voltageDatasets.map((ds) => ds.data));
-    charts.voltaje = new Chart(ctxVoltaje, {
+    charts.graficaVoltaje = new Chart(ctxVoltaje, {
       type: "line",
       data: { labels: labels, datasets: voltageDatasets },
       options: {
@@ -411,7 +411,7 @@ function crearGraficos(datos) {
         label: "UTHAB",
         data: downsampleArray(
           datos.map((row) => row.UTHAB),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.A,
         borderColor: COLORS.A,
@@ -421,7 +421,7 @@ function crearGraficos(datos) {
         label: "UTHBC",
         data: downsampleArray(
           datos.map((row) => row.UTHBC),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.B,
         borderColor: COLORS.B,
@@ -431,7 +431,7 @@ function crearGraficos(datos) {
         label: "UTHCA",
         data: downsampleArray(
           datos.map((row) => row.UTHCA),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.C,
         borderColor: COLORS.C,
@@ -439,7 +439,7 @@ function crearGraficos(datos) {
       },
     ];
     const uthdRange = getYAxisRange(uthdDatasets.map((ds) => ds.data));
-    charts.uthd = new Chart(ctxUTHD, {
+    charts.graficaUTHD = new Chart(ctxUTHD, {
       type: "bar",
       data: { labels: labels, datasets: uthdDatasets },
       options: {
@@ -467,7 +467,7 @@ function crearGraficos(datos) {
         label: "IA",
         data: downsampleArray(
           datos.map((row) => row.IA),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.A,
         tension: 0.1,
@@ -476,7 +476,7 @@ function crearGraficos(datos) {
         label: "IB",
         data: downsampleArray(
           datos.map((row) => row.IB),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.B,
         tension: 0.1,
@@ -485,7 +485,7 @@ function crearGraficos(datos) {
         label: "IC",
         data: downsampleArray(
           datos.map((row) => row.IC),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.C,
         tension: 0.1,
@@ -494,14 +494,14 @@ function crearGraficos(datos) {
         label: "IAvg",
         data: downsampleArray(
           datos.map((row) => row.IAvg),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         borderColor: COLORS.Sum,
         tension: 0.1,
       },
     ];
     const currentRange = getYAxisRange(currentDatasets.map((ds) => ds.data));
-    charts.corriente = new Chart(ctxCorriente, {
+    charts.graficaCorriente = new Chart(ctxCorriente, {
       type: "line",
       data: { labels: labels, datasets: currentDatasets },
       options: {
@@ -530,7 +530,7 @@ function crearGraficos(datos) {
         label: "ITHA",
         data: downsampleArray(
           datos.map((row) => row.ITHA),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.A,
         borderColor: COLORS.A,
@@ -540,7 +540,7 @@ function crearGraficos(datos) {
         label: "ITHB",
         data: downsampleArray(
           datos.map((row) => row.ITHB),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.B,
         borderColor: COLORS.B,
@@ -550,7 +550,7 @@ function crearGraficos(datos) {
         label: "ITHC",
         data: downsampleArray(
           datos.map((row) => row.ITHC),
-          MAX_POINTS
+          MAX_POINTS,
         ),
         backgroundColor: COLORS.C,
         borderColor: COLORS.C,
@@ -558,7 +558,7 @@ function crearGraficos(datos) {
       },
     ];
     const ithRange = getYAxisRange(ithDatasets.map((ds) => ds.data));
-    charts.ith = new Chart(ctxITH, {
+    charts.graficaITH = new Chart(ctxITH, {
       type: "bar",
       data: { labels: labels, datasets: ithDatasets },
       options: {
@@ -583,10 +583,10 @@ function crearGraficos(datos) {
   if (ctxPF) {
     const pfData = downsampleArray(
       datos.map((row) => parseFloat(row.PF) || 0),
-      MAX_POINTS
+      MAX_POINTS,
     );
     const pfRange = getYAxisRange([pfData]);
-    charts.pf = new Chart(ctxPF, {
+    charts.graficaPF = new Chart(ctxPF, {
       type: "line",
       data: {
         labels: labels,
@@ -627,10 +627,10 @@ function crearGraficos(datos) {
         const S = Math.sqrt(P * P + Q * Q);
         return S !== 0 ? Number((P / S).toFixed(3)) : 0;
       }),
-      MAX_POINTS
+      MAX_POINTS,
     );
     const cosPhiRange = getYAxisRange([cosPhiData]);
-    charts.cosPhi = new Chart(ctxCosPhi, {
+    charts.graficaCosPhi2 = new Chart(ctxCosPhi, {
       type: "line",
       data: {
         labels: labels,
@@ -665,17 +665,17 @@ function crearGraficos(datos) {
   const ctxPA = document.getElementById("graficaPotenciaActiva");
   if (ctxPA) {
     const paData = downsampleArray(
-      datos.map((row) => row.PSum),
-      MAX_POINTS
+      datos.map((row) => (row.PSum || 0) / 1000),
+      MAX_POINTS,
     );
     const paRange = getPowerEnergyRange([paData]);
-    charts.potenciaActiva = new Chart(ctxPA, {
+    charts.graficaPotenciaActiva = new Chart(ctxPA, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "Potencia Activa Total (W)",
+            label: "Potencia Activa Total (kW)",
             data: paData,
             borderColor: COLORS.Sum,
             tension: 0.1,
@@ -686,14 +686,17 @@ function crearGraficos(datos) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: "Potencia Activa Total (W)" },
+          title: { display: true, text: "Potencia Activa Total (kW)" },
         },
         scales: {
           x: { ticks: { maxRotation: 45, minRotation: 45 } },
           y: {
             min: paRange.min,
             max: paRange.max,
-            ticks: { stepSize: paRange.stepSize },
+            ticks: {
+              stepSize: paRange.stepSize,
+              callback: (value) => value.toFixed(1),
+            },
           },
         },
       },
@@ -704,17 +707,17 @@ function crearGraficos(datos) {
   const ctxPR = document.getElementById("graficaPotenciaReactiva");
   if (ctxPR) {
     const prData = downsampleArray(
-      datos.map((row) => row.QSum),
-      MAX_POINTS
+      datos.map((row) => (row.QSum || 0) / 1000),
+      MAX_POINTS,
     );
     const prRange = getPowerEnergyRange([prData]);
-    charts.potenciaReactiva = new Chart(ctxPR, {
+    charts.graficaPotenciaReactiva = new Chart(ctxPR, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "Potencia Reactiva Total (Var)",
+            label: "Potencia Reactiva Total (kVar)",
             data: prData,
             borderColor: COLORS.Sum,
             tension: 0.1,
@@ -725,14 +728,17 @@ function crearGraficos(datos) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: "Potencia Reactiva Total (Var)" },
+          title: { display: true, text: "Potencia Reactiva Total (kVar)" },
         },
         scales: {
           x: { ticks: { maxRotation: 45, minRotation: 45 } },
           y: {
             min: prRange.min,
             max: prRange.max,
-            ticks: { stepSize: prRange.stepSize },
+            ticks: {
+              stepSize: prRange.stepSize,
+              callback: (value) => value.toFixed(1),
+            },
           },
         },
       },
@@ -743,17 +749,17 @@ function crearGraficos(datos) {
   const ctxPS = document.getElementById("graficaPotenciaAparente");
   if (ctxPS) {
     const psData = downsampleArray(
-      datos.map((row) => row.SSum),
-      MAX_POINTS
+      datos.map((row) => (row.SSum || 0) / 1000),
+      MAX_POINTS,
     );
     const psRange = getPowerEnergyRange([psData]);
-    charts.potenciaAparente = new Chart(ctxPS, {
+    charts.graficaPotenciaAparente = new Chart(ctxPS, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "Potencia Aparente Total (VA)",
+            label: "Potencia Aparente Total (kVA)",
             data: psData,
             borderColor: COLORS.Sum,
             tension: 0.1,
@@ -764,14 +770,17 @@ function crearGraficos(datos) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: "Potencia Aparente Total (VA)" },
+          title: { display: true, text: "Potencia Aparente Total (kVA)" },
         },
         scales: {
           x: { ticks: { maxRotation: 45, minRotation: 45 } },
           y: {
             min: psRange.min,
             max: psRange.max,
-            ticks: { stepSize: psRange.stepSize },
+            ticks: {
+              stepSize: psRange.stepSize,
+              callback: (value) => value.toFixed(1),
+            },
           },
         },
       },
@@ -782,17 +791,17 @@ function crearGraficos(datos) {
   const ctxEA = document.getElementById("graficaEnergiaActiva");
   if (ctxEA) {
     const eaData = downsampleArray(
-      datos.map((row) => row.EPSum),
-      MAX_POINTS
+      datos.map((row) => (row.EPSum || 0) / 1000),
+      MAX_POINTS,
     );
     const eaRange = getPowerEnergyRange([eaData]);
-    charts.energiaActiva = new Chart(ctxEA, {
+    charts.graficaEnergiaActiva = new Chart(ctxEA, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "Energía Activa Total (Wh)",
+            label: "Energía Activa Total (kWh)",
             data: eaData,
             borderColor: COLORS.Sum,
             tension: 0.1,
@@ -803,14 +812,17 @@ function crearGraficos(datos) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: "Energía Activa Total (Wh)" },
+          title: { display: true, text: "Energía Activa Total (kWh)" },
         },
         scales: {
           x: { ticks: { maxRotation: 45, minRotation: 45 } },
           y: {
             min: eaRange.min,
             max: eaRange.max,
-            ticks: { stepSize: eaRange.stepSize },
+            ticks: {
+              stepSize: eaRange.stepSize,
+              callback: (value) => value.toFixed(1),
+            },
           },
         },
       },
@@ -821,17 +833,17 @@ function crearGraficos(datos) {
   const ctxER = document.getElementById("graficaEnergiaReactiva");
   if (ctxER) {
     const erData = downsampleArray(
-      datos.map((row) => row.EQSum),
-      MAX_POINTS
+      datos.map((row) => (row.EQSum || 0) / 1000),
+      MAX_POINTS,
     );
     const erRange = getPowerEnergyRange([erData]);
-    charts.energiaReactiva = new Chart(ctxER, {
+    charts.graficaEnergiaReactiva = new Chart(ctxER, {
       type: "line",
       data: {
         labels: labels,
         datasets: [
           {
-            label: "Energía Reactiva Total (Varh)",
+            label: "Energía Reactiva Total (kVarh)",
             data: erData,
             borderColor: COLORS.Sum,
             tension: 0.1,
@@ -842,21 +854,241 @@ function crearGraficos(datos) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: { display: true, text: "Energía Reactiva Total (Varh)" },
+          title: { display: true, text: "Energía Reactiva Total (kVarh)" },
         },
         scales: {
           x: { ticks: { maxRotation: 45, minRotation: 45 } },
           y: {
             min: erRange.min,
             max: erRange.max,
-            ticks: { stepSize: erRange.stepSize },
+            ticks: {
+              stepSize: erRange.stepSize,
+              callback: (value) => value.toFixed(1),
+            },
           },
         },
       },
     });
   }
 
-  console.log("Gráficos 3P3W creados exitosamente");
+  // Crear histogramas complementarios
+  crearHistogramasComplementarios(datos);
+
+  // Inicializar eventos para vista ampliada
+  inicializarEventosGraficos();
+}
+
+// Función para inicializar eventos de clic en los gráficos
+function inicializarEventosGraficos() {
+  const canvases = document.querySelectorAll(".grafico-container canvas");
+  const modalElement = document.getElementById("graphModal");
+  const modalCanvas = document.getElementById("modalCanvas");
+
+  if (!modalElement || !modalCanvas) {
+    console.error("No se encontró el elemento modal o el canvas del modal.");
+    return;
+  }
+
+  let modalChart = null;
+
+  canvases.forEach((canvas) => {
+    canvas.onclick = function () {
+      const chartId = canvas.id;
+      const originalChart =
+        typeof charts !== "undefined"
+          ? charts[chartId]
+          : Chart.getChart(canvas);
+
+      if (!originalChart) {
+        console.warn("No se encontró la instancia del gráfico para:", chartId);
+        return;
+      }
+
+      // Obtener o crear instancia del modal (Bootstrap 5)
+      const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+      bsModal.show();
+
+      // Limpiar gráfico previo en el modal si existe (usando el método más robusto)
+      const existingChart = Chart.getChart(modalCanvas);
+      if (existingChart) {
+        existingChart.destroy();
+      }
+
+      // Esperar a que el modal se muestre para obtener las dimensiones correctas
+      const onShown = function () {
+        const ctx = modalCanvas.getContext("2d");
+
+        new Chart(ctx, {
+          type: originalChart.config.type,
+          data: originalChart.config.data,
+          options: {
+            ...originalChart.config.options,
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+              ...originalChart.config.options.plugins,
+              legend: {
+                ...originalChart.config.options.plugins?.legend,
+                display: true,
+              },
+            },
+          },
+        });
+
+        // Remover el listener para evitar duplicados en la próxima apertura
+        modalElement.removeEventListener("shown.bs.modal", onShown);
+      };
+
+      modalElement.addEventListener("shown.bs.modal", onShown);
+    };
+  });
+}
+
+// Función para crear histogramas complementarios (con diferenciación de fases)
+function crearHistogramasComplementarios(datos) {
+  console.log("Iniciando creación de histogramas complementarios (3P3W)");
+
+  // 1. Histograma de Voltaje (Diferenciado por fases, 0 decimales)
+  const ua = datos.map((row) => parseFloat(row.UA)).filter((v) => !isNaN(v));
+  const ub = datos.map((row) => parseFloat(row.UB)).filter((v) => !isNaN(v));
+  const uc = datos.map((row) => parseFloat(row.UC)).filter((v) => !isNaN(v));
+  crearHistograma(
+    "histoVoltaje",
+    [
+      { label: "Fase A", data: ua, color: "rgba(255, 206, 86, 0.7)" },
+      { label: "Fase B", data: ub, color: "rgba(75, 192, 192, 0.7)" },
+      { label: "Fase C", data: uc, color: "rgba(255, 99, 132, 0.7)" },
+    ],
+    "Tensión por Fase (V)",
+    "V",
+    0,
+  );
+
+  // 2. Histograma de Corriente (Diferenciado por fases, 0 decimales)
+  const ia = datos.map((row) => parseFloat(row.IA)).filter((v) => !isNaN(v));
+  const ib = datos.map((row) => parseFloat(row.IB)).filter((v) => !isNaN(v));
+  const ic = datos.map((row) => parseFloat(row.IC)).filter((v) => !isNaN(v));
+  crearHistograma(
+    "histoCorriente",
+    [
+      { label: "Fase A", data: ia, color: "rgba(255, 206, 86, 0.7)" },
+      { label: "Fase B", data: ib, color: "rgba(75, 192, 192, 0.7)" },
+      { label: "Fase C", data: ic, color: "rgba(255, 99, 132, 0.7)" },
+    ],
+    "Corriente por Fase (A)",
+    "A",
+    0,
+  );
+
+  // 3. Histograma de Potencia Activa (PSum en kW, 2 decimales)
+  const paData = datos
+    .map((row) => parseFloat(row.PSum) / 1000)
+    .filter((v) => !isNaN(v));
+  crearHistograma(
+    "histoPotenciaActiva",
+    [{ label: "Total", data: paData, color: "rgba(188, 188, 50, 0.8)" }],
+    "Potencia Activa Total (kW)",
+    "kW",
+    2,
+  );
+
+  // 4. Histograma de Factor de Potencia (PF, 2 decimales)
+  const pfData = datos
+    .map((row) => parseFloat(row.PF))
+    .filter((v) => !isNaN(v));
+  crearHistograma(
+    "histoPF",
+    [{ label: "PF", data: pfData, color: "rgba(111, 66, 193, 0.8)" }],
+    "Factor de Potencia",
+    "",
+    2,
+  );
+}
+
+// Función genérica para crear un histograma con estilo "Reporte Técnico" mejorado para multifase
+function crearHistograma(canvasId, datasets, label, unit, precision = 0) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx || datasets.length === 0 || datasets[0].data.length === 0) return;
+
+  // Calcular media global
+  let titleMediaText = "";
+  datasets.forEach((ds, idx) => {
+    const sum = ds.data.reduce((a, b) => a + b, 0);
+    const media = (sum / ds.data.length).toFixed(precision);
+    titleMediaText += `${datasets.length > 1 ? ds.label + ": " : ""}${media}${unit}${idx < datasets.length - 1 ? " | " : ""}`;
+  });
+
+  // Configurar bins (intervalos) basados en el rango global de todos los datasets
+  const allData = datasets.flatMap((ds) => ds.data);
+  const numBins = 50;
+  const min = Math.min(...allData);
+  const max = Math.max(...allData);
+  const binSize = (max - min) / numBins || 0.1;
+
+  const labels = [];
+  const chartDatasets = datasets.map((ds) => {
+    const bins = new Array(numBins).fill(0);
+    for (let i = 0; i < numBins; i++) {
+      const binStart = min + i * binSize;
+      const binEnd = binStart + binSize;
+      bins[i] = ds.data.filter(
+        (v) => v >= binStart && (i === numBins - 1 ? v <= binEnd : v < binEnd),
+      ).length;
+    }
+    return {
+      label: ds.label,
+      data: bins,
+      backgroundColor: ds.color || "rgba(188, 188, 50, 0.8)",
+      borderColor: "#000000",
+      borderWidth: 1,
+      barPercentage: 1.0,
+      categoryPercentage: 1.0,
+    };
+  });
+
+  for (let i = 0; i < numBins; i++) {
+    labels.push((min + i * binSize).toFixed(precision));
+  }
+
+  if (charts[canvasId]) {
+    charts[canvasId].destroy();
+  }
+
+  charts[canvasId] = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: chartDatasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `${label} - Media: ${titleMediaText}`,
+          color: "#000",
+          font: { size: 14, weight: "bold" },
+        },
+        legend: { display: datasets.length > 1 },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: `Valor (${unit})`, color: "#000" },
+          grid: { color: "rgba(0, 0, 0, 0.4)", lineWidth: 1.2 },
+          ticks: { color: "#000", maxRotation: 45, minRotation: 45 },
+        },
+        y: {
+          title: { display: true, text: "Número de eventos", color: "#000" },
+          grid: { color: "rgba(0, 0, 0, 0.4)", lineWidth: 1.2 },
+          ticks: { color: "#000" },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+
+  ctx.parentElement.style.backgroundColor = "white";
 }
 
 function getPowerEnergyRange(data) {
@@ -930,21 +1162,21 @@ async function exportToPDF() {
       "Orión Ingeniería en Mediciones Eléctricas",
       pageWidth / 2,
       margin + 10,
-      { align: "center" }
+      { align: "center" },
     );
     doc.setFontSize(14);
     doc.text(
       "ANALIZADOR DE CALIDAD DE ENERGÍA ME631",
       pageWidth / 2,
       margin + 25,
-      { align: "center" }
+      { align: "center" },
     );
     doc.setFontSize(12);
     doc.text(
       "Tipo de Conexión: 3 FASES 3 CONDUCTORES",
       pageWidth / 2,
       margin + 30,
-      { align: "center" }
+      { align: "center" },
     );
 
     // Información del equipo

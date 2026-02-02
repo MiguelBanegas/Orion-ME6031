@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -119,6 +119,16 @@
                     >Corriente de Neutro</a
                   >
                 </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="monitoreo-tiempo-real.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Monitoreo en Tiempo Real</a
+                  >
+                </li>
               </ul>
             </li>
             <li class="nav-item">
@@ -140,7 +150,7 @@
           <h2>Cálculo de Corriente I Neutro</h2>
         </div>
         <div class="card-body">
-          <form id="calculo-form" onsubmit="return false">
+          <form id="calculo-form" onsubmit="return false;">
             <div class="row mb-3">
               <div class="col">
                 <label for="i1" class="form-label">I1:</label>
@@ -337,16 +347,16 @@
         const In_magnitud = Math.sqrt(In_real ** 2 + In_imag ** 2);
 
         const inValue = Math.sqrt(
-          i1 ** 2 + i2 ** 2 + i3 ** 2 - i1 * i2 - i1 * i3 - i2 * i3
+          i1 ** 2 + i2 ** 2 + i3 ** 2 - i1 * i2 - i1 * i3 - i2 * i3,
         );
 
         const resultadoDiv = document.getElementById("resultado");
         const resultadoDivPhi = document.getElementById("resultadoPhi");
         resultadoDiv.innerHTML = `<strong>El valor de I Neutro sin considerar FP ni THD es:</strong> ${inValue.toFixed(
-          4
+          4,
         )}`;
         resultadoDivPhi.innerHTML = `<strong>El valor de I Neutro con FP y THD es:</strong> ${In_magnitud.toFixed(
-          4
+          4,
         )}`;
       }
     </script>
@@ -410,6 +420,41 @@
         © 2024 ORION Servicios Eléctricos. Todos los derechos reservados.
       </div>
     </footer>
+
+    <!-- Modal para Vista Ampliada de Gráficos -->
+    <div
+      class="modal fade"
+      id="graphModal"
+      tabindex="-1"
+      aria-labelledby="graphModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="graphModalLabel">Vista Ampliada</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <canvas id="modalCanvas"></canvas>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

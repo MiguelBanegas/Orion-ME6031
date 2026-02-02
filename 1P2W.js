@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isValidSuffix = fileName.includes("1P2W");
     if (!isValidExtension || !isValidSuffix) {
       alert(
-        'Por favor, selecciona un archivo que contenga "1P2W" en su nombre y termine en .csv.'
+        'Por favor, selecciona un archivo que contenga "1P2W" en su nombre y termine en .csv.',
       );
       return;
     }
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(
           "Worker completado. Recibidos",
           payload.datos.length,
-          "registros."
+          "registros.",
         );
         datos = payload.datos;
         datosActivos = datos;
@@ -185,11 +185,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const fechaInicio = formatearFechaHora(
           primerRegistro.Date,
-          primerRegistro.Time
+          primerRegistro.Time,
         );
         const fechaFin = formatearFechaHora(
           ultimoRegistro.Date,
-          ultimoRegistro.Time
+          ultimoRegistro.Time,
         );
 
         if (fechaInicio && fechaFin) {
@@ -335,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (!datos || datos.length === 0) {
             alert(
-              "No hay datos cargados. Por favor, cargue un archivo CSV primero."
+              "No hay datos cargados. Por favor, cargue un archivo CSV primero.",
             );
             document.getElementById("loadingMessage").style.display = "none";
             return;
@@ -359,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function () {
               datosActivos = datos.filter((row) => {
                 // Filtro por fecha
                 const fechaRegistro = new Date(
-                  formatearFechaHora(row.Date, row.Time)
+                  formatearFechaHora(row.Date, row.Time),
                 );
                 if (fechaRegistro < startDate || fechaRegistro > endDate) {
                   return false;
@@ -495,7 +495,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!Array.isArray(apiData)) {
           console.log(
-            "La respuesta no es un array directo, buscando propiedad con datos..."
+            "La respuesta no es un array directo, buscando propiedad con datos...",
           );
 
           // Extraer información adicional si existe
@@ -515,17 +515,17 @@ document.addEventListener("DOMContentLoaded", function () {
           else {
             console.error(
               "No se pudo encontrar el array de datos en la respuesta:",
-              apiData
+              apiData,
             );
             throw new Error("Formato de respuesta inesperado de la API");
           }
         }
 
         console.log(
-          `✅ Datos filtrados recibidos: ${datos_api.length} registros`
+          `✅ Datos filtrados recibidos: ${datos_api.length} registros`,
         );
         console.log(
-          `📊 Total según API: ${count || datos_api.length} registros`
+          `📊 Total según API: ${count || datos_api.length} registros`,
         );
         if (datos_api.length > 0) {
           console.log("Primeros 3 registros:", datos_api.slice(0, 3));
@@ -627,11 +627,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
               const fechaInicio = formatearFechaHora(
                 primerRegistro.Date,
-                primerRegistro.Time
+                primerRegistro.Time,
               );
               const fechaFin = formatearFechaHora(
                 ultimoRegistro.Date,
-                ultimoRegistro.Time
+                ultimoRegistro.Time,
               );
 
               if (fechaInicio && fechaFin) {
@@ -690,7 +690,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const MAX_POINTS = 200;
     const labels = downsampleArray(
       datosOrdenados.map((row) => (row.Time ? row.Time.substring(0, 5) : "")),
-      MAX_POINTS
+      MAX_POINTS,
     );
 
     // Mostrar contenedores de gráficos
@@ -703,10 +703,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxVoltaje) {
       const voltageData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.UA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const voltageRange = getYAxisRange([voltageData]);
-      charts.voltaje = new Chart(ctxVoltaje, {
+      charts.graficaVoltaje = new Chart(ctxVoltaje, {
         type: "line",
         data: {
           labels: labels,
@@ -744,10 +744,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxUTHD) {
       const uthdData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.UTHA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const uthdRange = getYAxisRange([uthdData]);
-      charts.uthd = new Chart(ctxUTHD, {
+      charts.graficaUTHD = new Chart(ctxUTHD, {
         type: "bar",
         data: {
           labels: labels,
@@ -783,10 +783,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxCorriente) {
       const currentData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.IA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const currentRange = getYAxisRange([currentData]);
-      charts.corriente = new Chart(ctxCorriente, {
+      charts.graficaCorriente = new Chart(ctxCorriente, {
         type: "line",
         data: {
           labels: labels,
@@ -824,23 +824,23 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxITH) {
       const ithaData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.ITHA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const ith3Data = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.ITHXA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const ith5Data = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.ITHYA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const ith7Data = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.ITHZA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
 
       const ithRange = getYAxisRange([ithaData, ith3Data, ith5Data, ith7Data]);
-      charts.ith = new Chart(ctxITH, {
+      charts.graficaITH = new Chart(ctxITH, {
         type: "bar",
         data: {
           labels: labels,
@@ -899,10 +899,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxPF) {
       const pfData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.PFA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const pfRange = getYAxisRange([pfData]);
-      charts.pf = new Chart(ctxPF, {
+      charts.graficaPF = new Chart(ctxPF, {
         type: "line",
         data: {
           labels: labels,
@@ -946,10 +946,10 @@ document.addEventListener("DOMContentLoaded", function () {
           const S = Math.sqrt(P * P + Q * Q);
           return S !== 0 ? Number((P / S).toFixed(3)) : 0;
         }),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const cosPhiRange = getYAxisRange([cosPhiData]);
-      charts.cosPhi = new Chart(ctxCosPhi, {
+      charts.graficaCosPhi2 = new Chart(ctxCosPhi, {
         type: "line",
         data: {
           labels: labels,
@@ -987,17 +987,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxPA = document.getElementById("graficaPotenciaActiva");
     if (ctxPA) {
       const paData = downsampleArray(
-        datosOrdenados.map((row) => parseFloat(row.PA) || 0),
-        MAX_POINTS
+        datosOrdenados.map((row) => (parseFloat(row.PA) || 0) / 1000),
+        MAX_POINTS,
       );
       const paRange = getPowerEnergyRange([paData]);
-      charts.potenciaActiva = new Chart(ctxPA, {
+      charts.graficaPotenciaActiva = new Chart(ctxPA, {
         type: "line",
         data: {
           labels: labels,
           datasets: [
             {
-              label: "Potencia Activa (W)",
+              label: "Potencia Activa (kW)",
               data: paData,
               borderColor: "rgb(0, 123, 255)",
               backgroundColor: "rgba(0, 123, 255, 0.1)",
@@ -1009,13 +1009,16 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { title: { display: true, text: "Potencia Activa (W)" } },
+          plugins: { title: { display: true, text: "Potencia Activa (kW)" } },
           scales: {
             x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: {
               min: paRange.min,
               max: paRange.max,
-              ticks: { stepSize: paRange.stepSize },
+              ticks: {
+                stepSize: paRange.stepSize,
+                callback: (value) => value.toFixed(1),
+              },
             },
           },
         },
@@ -1027,10 +1030,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ctxFreq) {
       const freqData = downsampleArray(
         datosOrdenados.map((row) => parseFloat(row.FA) || 0),
-        MAX_POINTS
+        MAX_POINTS,
       );
       const freqRange = getYAxisRange([freqData]);
-      charts.frecuencia = new Chart(ctxFreq, {
+      charts.graficaCosPhi = new Chart(ctxFreq, {
         type: "line",
         data: {
           labels: labels,
@@ -1068,17 +1071,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxPR = document.getElementById("graficaPotenciaReactiva");
     if (ctxPR) {
       const prData = downsampleArray(
-        datosOrdenados.map((row) => parseFloat(row.QA) || 0),
-        MAX_POINTS
+        datosOrdenados.map((row) => (parseFloat(row.QA) || 0) / 1000),
+        MAX_POINTS,
       );
       const prRange = getPowerEnergyRange([prData]);
-      charts.potenciaReactiva = new Chart(ctxPR, {
+      charts.graficaPotenciaReactiva = new Chart(ctxPR, {
         type: "line",
         data: {
           labels: labels,
           datasets: [
             {
-              label: "Potencia Reactiva (Var)",
+              label: "Potencia Reactiva (kVar)",
               data: prData,
               borderColor: "rgb(255, 193, 7)",
               backgroundColor: "rgba(255, 193, 7, 0.1)",
@@ -1091,14 +1094,17 @@ document.addEventListener("DOMContentLoaded", function () {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: { display: true, text: "Potencia Reactiva (Var)" },
+            title: { display: true, text: "Potencia Reactiva (kVar)" },
           },
           scales: {
             x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: {
               min: prRange.min,
               max: prRange.max,
-              ticks: { stepSize: prRange.stepSize },
+              ticks: {
+                stepSize: prRange.stepSize,
+                callback: (value) => value.toFixed(1),
+              },
             },
           },
         },
@@ -1109,17 +1115,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxPS = document.getElementById("graficaPotenciaAparente");
     if (ctxPS) {
       const psData = downsampleArray(
-        datosOrdenados.map((row) => parseFloat(row.SA) || 0),
-        MAX_POINTS
+        datosOrdenados.map((row) => (parseFloat(row.SA) || 0) / 1000),
+        MAX_POINTS,
       );
       const psRange = getPowerEnergyRange([psData]);
-      charts.potenciaAparente = new Chart(ctxPS, {
+      charts.graficaPotenciaAparente = new Chart(ctxPS, {
         type: "line",
         data: {
           labels: labels,
           datasets: [
             {
-              label: "Potencia Aparente (VA)",
+              label: "Potencia Aparente (kVA)",
               data: psData,
               borderColor: "rgb(153, 102, 255)",
               backgroundColor: "rgba(153, 102, 255, 0.1)",
@@ -1131,13 +1137,18 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { title: { display: true, text: "Potencia Aparente (VA)" } },
+          plugins: {
+            title: { display: true, text: "Potencia Aparente (kVA)" },
+          },
           scales: {
             x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: {
               min: psRange.min,
               max: psRange.max,
-              ticks: { stepSize: psRange.stepSize },
+              ticks: {
+                stepSize: psRange.stepSize,
+                callback: (value) => value.toFixed(1),
+              },
             },
           },
         },
@@ -1148,17 +1159,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxEA = document.getElementById("graficaEnergiaActiva");
     if (ctxEA) {
       const eaData = downsampleArray(
-        datosOrdenados.map((row) => parseFloat(row.EPA) || 0),
-        MAX_POINTS
+        datosOrdenados.map((row) => (parseFloat(row.EPA) || 0) / 1000),
+        MAX_POINTS,
       );
       const eaRange = getPowerEnergyRange([eaData]);
-      charts.energiaActiva = new Chart(ctxEA, {
+      charts.graficaEnergiaActiva = new Chart(ctxEA, {
         type: "line",
         data: {
           labels: labels,
           datasets: [
             {
-              label: "Energía Activa (Wh)",
+              label: "Energía Activa (kWh)",
               data: eaData,
               borderColor: "rgb(40, 167, 69)",
               backgroundColor: "rgba(40, 167, 69, 0.1)",
@@ -1170,13 +1181,16 @@ document.addEventListener("DOMContentLoaded", function () {
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { title: { display: true, text: "Energía Activa (Wh)" } },
+          plugins: { title: { display: true, text: "Energía Activa (kWh)" } },
           scales: {
             x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: {
               min: eaRange.min,
               max: eaRange.max,
-              ticks: { stepSize: eaRange.stepSize },
+              ticks: {
+                stepSize: eaRange.stepSize,
+                callback: (value) => value.toFixed(1),
+              },
             },
           },
         },
@@ -1187,17 +1201,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const ctxER = document.getElementById("graficaEnergiaReactiva");
     if (ctxER) {
       const erData = downsampleArray(
-        datosOrdenados.map((row) => parseFloat(row.EQA) || 0),
-        MAX_POINTS
+        datosOrdenados.map((row) => (parseFloat(row.EQA) || 0) / 1000),
+        MAX_POINTS,
       );
       const erRange = getPowerEnergyRange([erData]);
-      charts.energiaReactiva = new Chart(ctxER, {
+      charts.graficaEnergiaReactiva = new Chart(ctxER, {
         type: "line",
         data: {
           labels: labels,
           datasets: [
             {
-              label: "Energía Reactiva (Varh)",
+              label: "Energía Reactiva (kVarh)",
               data: erData,
               borderColor: "rgb(220, 53, 69)",
               backgroundColor: "rgba(220, 53, 69, 0.1)",
@@ -1210,14 +1224,17 @@ document.addEventListener("DOMContentLoaded", function () {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            title: { display: true, text: "Energía Reactiva (Varh)" },
+            title: { display: true, text: "Energía Reactiva (kVarh)" },
           },
           scales: {
             x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: {
               min: erRange.min,
               max: erRange.max,
-              ticks: { stepSize: erRange.stepSize },
+              ticks: {
+                stepSize: erRange.stepSize,
+                callback: (value) => value.toFixed(1),
+              },
             },
           },
         },
@@ -1225,6 +1242,243 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     console.log("Gráficos monofásicos creados exitosamente");
+
+    // Crear histogramas complementarios
+    crearHistogramasComplementarios(datosOrdenados);
+
+    // Inicializar eventos para vista ampliada
+    inicializarEventosGraficos();
+  }
+
+  // Función para inicializar eventos de clic en los gráficos
+  function inicializarEventosGraficos() {
+    const canvases = document.querySelectorAll(".grafico-container canvas");
+    const modalElement = document.getElementById("graphModal");
+    const modalCanvas = document.getElementById("modalCanvas");
+
+    if (!modalElement || !modalCanvas) {
+      console.error("No se encontró el elemento modal o el canvas del modal.");
+      return;
+    }
+
+    let modalChart = null;
+
+    canvases.forEach((canvas) => {
+      canvas.onclick = function () {
+        const chartId = canvas.id;
+        const originalChart =
+          typeof charts !== "undefined"
+            ? charts[chartId]
+            : Chart.getChart(canvas);
+
+        if (!originalChart) {
+          console.warn(
+            "No se encontró la instancia del gráfico para:",
+            chartId,
+          );
+          return;
+        }
+
+        // Obtener o crear instancia del modal (Bootstrap 5)
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        bsModal.show();
+
+        // Limpiar gráfico previo en el modal si existe (usando el método más robusto)
+        const existingChart = Chart.getChart(modalCanvas);
+        if (existingChart) {
+          existingChart.destroy();
+        }
+
+        // Esperar a que el modal se muestre para obtener las dimensiones correctas
+        const onShown = function () {
+          const ctx = modalCanvas.getContext("2d");
+
+          // Clonar configuración del gráfico original
+          // const config = JSON.parse(JSON.stringify(originalChart.config)); // No es necesario clonar toda la config si solo se modifican opciones
+
+          // Ajustes para la vista ampliada
+          // config.options.maintainAspectRatio = false;
+          // config.options.responsive = true;
+
+          // Re-vincular funciones o plugins que se pierden con stringify si fuera necesario
+          // En este caso, Chart.js maneja bien los datos planos
+
+          new Chart(ctx, {
+            type: originalChart.config.type,
+            data: originalChart.config.data,
+            options: {
+              ...originalChart.config.options,
+              maintainAspectRatio: false,
+              responsive: true,
+              plugins: {
+                ...originalChart.config.options.plugins,
+                legend: {
+                  ...originalChart.config.options.plugins?.legend,
+                  display: true, // Siempre mostrar leyenda en el modal
+                },
+              },
+            },
+          });
+
+          // Remover el listener para evitar duplicados en la próxima apertura
+          modalElement.removeEventListener("shown.bs.modal", onShown);
+        };
+
+        modalElement.addEventListener("shown.bs.modal", onShown);
+      };
+    });
+  }
+
+  // Función para crear histogramas complementarios
+  function crearHistogramasComplementarios(datos) {
+    console.log("Iniciando creación de histogramas complementarios");
+
+    // 1. Histograma de Voltaje (0 decimales)
+    const voltageData = datos
+      .map((row) => parseFloat(row.UA))
+      .filter((v) => !isNaN(v));
+    crearHistograma(
+      "histoVoltaje",
+      [
+        {
+          label: "Fase A",
+          data: voltageData,
+          color: "rgba(188, 188, 50, 0.8)",
+        },
+      ],
+      "Tensión (V)",
+      "V",
+      0,
+    );
+
+    // 2. Histograma de Corriente (0 decimales)
+    const currentData = datos
+      .map((row) => parseFloat(row.IA))
+      .filter((v) => !isNaN(v));
+    crearHistograma(
+      "histoCorriente",
+      [
+        {
+          label: "Fase A",
+          data: currentData,
+          color: "rgba(188, 188, 50, 0.8)",
+        },
+      ],
+      "Corriente (A)",
+      "A",
+      0,
+    );
+
+    // 3. Histograma de Potencia Activa (en kW, 2 decimales)
+    const paData = datos
+      .map((row) => parseFloat(row.PA) / 1000)
+      .filter((v) => !isNaN(v));
+    crearHistograma(
+      "histoPotenciaActiva",
+      [{ label: "Fase A", data: paData, color: "rgba(188, 188, 50, 0.8)" }],
+      "Potencia Activa (kW)",
+      "kW",
+      2,
+    );
+
+    // 4. Histograma de Factor de Potencia (2 decimales)
+    const pfData = datos
+      .map((row) => parseFloat(row.PFA))
+      .filter((v) => !isNaN(v));
+    crearHistograma(
+      "histoPF",
+      [{ label: "PF", data: pfData, color: "rgba(111, 66, 193, 0.8)" }],
+      "Factor de Potencia",
+      "",
+      2,
+    );
+  }
+
+  // Función genérica para crear un histograma con estilo "Reporte Técnico" mejorado para multifase
+  function crearHistograma(canvasId, datasets, label, unit, precision = 0) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx || datasets.length === 0 || datasets[0].data.length === 0) return;
+
+    // Calcular media global
+    let titleMediaText = "";
+    datasets.forEach((ds, idx) => {
+      const sum = ds.data.reduce((a, b) => a + b, 0);
+      const media = (sum / ds.data.length).toFixed(precision);
+      titleMediaText += `${datasets.length > 1 ? ds.label + ": " : ""}${media}${unit}${idx < datasets.length - 1 ? " | " : ""}`;
+    });
+
+    // Configurar bins (intervalos) basados en el rango global de todos los datasets
+    const allData = datasets.flatMap((ds) => ds.data);
+    const numBins = 50;
+    const min = Math.min(...allData);
+    const max = Math.max(...allData);
+    const binSize = (max - min) / numBins;
+
+    const labels = [];
+    const chartDatasets = datasets.map((ds) => {
+      const bins = new Array(numBins).fill(0);
+      for (let i = 0; i < numBins; i++) {
+        const binStart = min + i * binSize;
+        const binEnd = binStart + binSize;
+        bins[i] = ds.data.filter(
+          (v) =>
+            v >= binStart && (i === numBins - 1 ? v <= binEnd : v < binEnd),
+        ).length;
+      }
+      return {
+        label: ds.label,
+        data: bins,
+        backgroundColor: ds.color || "rgba(188, 188, 50, 0.8)",
+        borderColor: "#000000",
+        borderWidth: 1,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0,
+      };
+    });
+
+    for (let i = 0; i < numBins; i++) {
+      labels.push((min + i * binSize).toFixed(precision));
+    }
+
+    if (charts[canvasId]) {
+      charts[canvasId].destroy();
+    }
+
+    charts[canvasId] = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: chartDatasets,
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `${label} - Media: ${titleMediaText}`,
+            color: "#000",
+            font: { size: 14, weight: "bold" },
+          },
+          legend: { display: datasets.length > 1 },
+        },
+        scales: {
+          x: {
+            title: { display: true, text: `Valor (${unit})`, color: "#000" },
+            grid: { color: "rgba(0, 0, 0, 0.4)", lineWidth: 1.2 },
+            ticks: { color: "#000", maxRotation: 45, minRotation: 45 },
+          },
+          y: {
+            title: { display: true, text: "Número de eventos", color: "#000" },
+            grid: { color: "rgba(0, 0, 0, 0.4)", lineWidth: 1.2 },
+            ticks: { color: "#000" },
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+
+    ctx.parentElement.style.backgroundColor = "white";
   }
 
   // Funciones de utilidad
@@ -1299,21 +1553,21 @@ document.addEventListener("DOMContentLoaded", function () {
         "Orión Ingeniería en Mediciones Eléctricas",
         pageWidth / 2,
         margin + 10,
-        { align: "center" }
+        { align: "center" },
       );
       doc.setFontSize(14);
       doc.text(
         "ANALIZADOR DE CALIDAD DE ENERGÍA ME631",
         pageWidth / 2,
         margin + 25,
-        { align: "center" }
+        { align: "center" },
       );
       doc.setFontSize(12);
       doc.text(
         "Tipo de Conexión: 1 FASE 2 CONDUCTORES",
         pageWidth / 2,
         margin + 30,
-        { align: "center" }
+        { align: "center" },
       );
 
       // Información del equipo
@@ -1492,7 +1746,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Restar 3 horas para convertir UTC a Buenos Aires (UTC-3)
         const fechaBuenosAires = new Date(
-          fechaUTC.getTime() - 3 * 60 * 60 * 1000
+          fechaUTC.getTime() - 3 * 60 * 60 * 1000,
         );
 
         // Formatear fecha y hora
@@ -1509,7 +1763,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Log solo del primer registro
         if (apiData.indexOf(item) === 0) {
           console.log(
-            `UTC: ${item.ts} -> Buenos Aires (UTC-3): ${fechaFormateada} ${horaFormateada}`
+            `UTC: ${item.ts} -> Buenos Aires (UTC-3): ${fechaFormateada} ${horaFormateada}`,
           );
         }
 
@@ -1595,16 +1849,16 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("=== VERIFICACIÓN DE CONEXIÓN ===");
         console.log(`Timestamp original de API: ${ultimoRegistro.ts}`);
         console.log(
-          `Timestamp corregido (-3h): ${timestampUltimo.toISOString()}`
+          `Timestamp corregido (-3h): ${timestampUltimo.toISOString()}`,
         );
         console.log(
-          `Fecha del último registro: ${timestampUltimo.toISOString()}`
+          `Fecha del último registro: ${timestampUltimo.toISOString()}`,
         );
         console.log(`Fecha actual: ${ahora.toISOString()}`);
         console.log(`Diferencia en milisegundos: ${ahora - timestampUltimo}`);
         console.log(`Antigüedad: ${diferenciaSegundos.toFixed(1)} segundos`);
         console.log(
-          `Estado: ${diferenciaSegundos <= 10 ? "CONECTADO" : "DESCONECTADO"}`
+          `Estado: ${diferenciaSegundos <= 10 ? "CONECTADO" : "DESCONECTADO"}`,
         );
 
         // Transformar datos de API a formato local
@@ -1680,11 +1934,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const fechaInicio = formatearFechaHora(
           primerRegistro.Date,
-          primerRegistro.Time
+          primerRegistro.Time,
         );
         const fechaFin = formatearFechaHora(
           ultimoRegistro.Date,
-          ultimoRegistro.Time
+          ultimoRegistro.Time,
         );
 
         if (fechaInicio && fechaFin) {

@@ -342,6 +342,27 @@ body {
     min-height: 420px !important;
     height: 420px !important;
     flex: 1;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.grafico-container canvas:hover {
+    opacity: 0.85;
+}
+
+/* Modal Graph Styling */
+#graphModal .modal-dialog {
+    max-width: 95%;
+}
+
+#graphModal .modal-body {
+    height: 80vh;
+    padding: 1.5rem;
+}
+
+#modalCanvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Tablas */
