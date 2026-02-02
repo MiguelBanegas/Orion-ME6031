@@ -6,6 +6,82 @@ let datosActivos = [];
 let charts = {};
 const loadingDelay = 500; // 0.5 segundos
 
+// Variables para modo API
+let modoActual = "csv"; // 'api' o 'csv'
+let updateInterval = null;
+const API_URL =
+  "https://api.orion.mabcontrol.ar/api/energy/3p3w?device_uid=ESP32_001";
+const UPDATE_INTERVAL_MS = 5000; // 5 segundos
+let currentLimit = 50;
+let isPaused = false;
+const MAX_DATA_POINTS = 100;
+
+document.addEventListener("DOMContentLoaded", function () {
+  // Event listeners para cambio de modo
+  document
+    .querySelectorAll('input[name="modoVisualizacion"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", function (e) {
+        modoActual = e.target.value;
+
+        const controlesAPI = document.getElementById("controlesAPI");
+        const controlesCSV = document.getElementById("controlesCSV");
+
+        if (modoActual === "api") {
+          controlesAPI.style.display = "block";
+          controlesCSV.style.display = "none";
+          isPaused = false;
+
+          const btnPauseResume = document.getElementById("btnPauseResume");
+          if (btnPauseResume) {
+            const icon = btnPauseResume.querySelector("i");
+            const text = document.getElementById("pauseResumeText");
+            icon.className = "fas fa-pause me-1";
+            text.textContent = "Pausar";
+            btnPauseResume.classList.remove("btn-success");
+            btnPauseResume.classList.add("btn-warning");
+          }
+
+          if (updateInterval) clearInterval(updateInterval);
+          cargarDatosAPI();
+          updateInterval = setInterval(() => {
+            if (!isPaused) cargarDatosAPI();
+          }, UPDATE_INTERVAL_MS);
+        } else {
+          controlesAPI.style.display = "none";
+          controlesCSV.style.display = "block";
+          if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+          }
+        }
+      });
+    });
+
+  // Event listener para botón de pausa/reanudar
+  const btnPauseResume = document.getElementById("btnPauseResume");
+  if (btnPauseResume) {
+    btnPauseResume.addEventListener("click", function () {
+      isPaused = !isPaused;
+      const icon = this.querySelector("i");
+      const text = document.getElementById("pauseResumeText");
+
+      if (isPaused) {
+        icon.className = "fas fa-play me-1";
+        text.textContent = "Reanudar";
+        this.classList.remove("btn-warning");
+        this.classList.add("btn-success");
+      } else {
+        icon.className = "fas fa-pause me-1";
+        text.textContent = "Pausar";
+        this.classList.remove("btn-success");
+        this.classList.add("btn-warning");
+        cargarDatosAPI();
+      }
+    });
+  }
+});
+
 // Event listener para el archivo CSV
 document.getElementById("csvFile").addEventListener("change", function (e) {
   console.log("Archivo seleccionado");
@@ -211,49 +287,185 @@ function formatearFechaHora(fecha, hora) {
 // Event listeners para botones
 console.log("Configurando event listeners para botones");
 
-// Botón de filtro
+// Botón de filtro avanzado
 const aplicarFiltro = document.getElementById("aplicarFiltro");
 if (aplicarFiltro) {
-  aplicarFiltro.addEventListener("click", function () {
+  aplicarFiltro.addEventListener("click", async function () {
     const fechaInicio = document.getElementById("fechaInicio").value;
     const fechaFin = document.getElementById("fechaFin").value;
+
     if (!fechaInicio || !fechaFin) {
-      alert("Por favor, seleccione fechas válidas");
+      alert("Por favor, seleccione fechas de inicio y fin");
       return;
     }
 
-    if (!gridApi) {
-      alert("El grid no está inicializado. Cargue datos primero.");
-      return;
+    // Pausar actualizaciones automáticas al aplicar filtro (solo en modo API)
+    if (modoActual === "api" && !isPaused) {
+      isPaused = true;
+      const btnPauseResume = document.getElementById("btnPauseResume");
+      if (btnPauseResume) {
+        const icon = btnPauseResume.querySelector("i");
+        const text = document.getElementById("pauseResumeText");
+        icon.className = "fas fa-play me-1";
+        text.textContent = "Reanudar";
+        btnPauseResume.classList.remove("btn-warning");
+        btnPauseResume.classList.add("btn-success");
+      }
     }
 
     document.getElementById("loadingMessage").style.display = "block";
 
-    setTimeout(() => {
-      try {
-        const startDate = new Date(fechaInicio);
-        const endDate = new Date(fechaFin);
-
-        datosActivos = datos.filter((row) => {
-          const fechaRegistro = new Date(
-            formatearFechaHora(row.Date, row.Time),
-          );
-          return fechaRegistro >= startDate && fechaRegistro <= endDate;
-        });
-
-        gridApi.setGridOption("rowData", datosActivos);
-        crearGraficos(datosActivos);
-
-        if (datosActivos.length === 0) {
-          alert("No se encontraron datos en el rango seleccionado");
+    try {
+      if (modoActual === "csv") {
+        console.log("=== APLICANDO FILTROS (MODO CSV) ===");
+        if (!datos || datos.length === 0) {
+          alert("No hay datos cargados. Cargue un archivo CSV primero.");
+          document.getElementById("loadingMessage").style.display = "none";
+          return;
         }
-      } catch (error) {
-        console.error("Error al aplicar filtro:", error);
-        alert("Error al aplicar el filtro: " + error.message);
-      } finally {
-        document.getElementById("loadingMessage").style.display = "none";
+
+        setTimeout(() => {
+          try {
+            const startDate = new Date(fechaInicio);
+            const endDate = new Date(fechaFin);
+
+            const tensionMin = document.getElementById("tensionMin").value;
+            const tensionMax = document.getElementById("tensionMax").value;
+            const corrienteMin = document.getElementById("corrienteMin").value;
+            const corrienteMax = document.getElementById("corrienteMax").value;
+            const potenciaMin = document.getElementById("potenciaMin").value;
+            const potenciaMax = document.getElementById("potenciaMax").value;
+
+            datosActivos = datos.filter((row) => {
+              const fechaRegistro = new Date(
+                formatearFechaHora(row.Date, row.Time),
+              );
+              if (fechaRegistro < startDate || fechaRegistro > endDate)
+                return false;
+
+              // Para 3P3W usamos UAvg, IAvg y PSum como referencia principal de filtrado
+              if (tensionMin && parseFloat(row.UAvg) < parseFloat(tensionMin))
+                return false;
+              if (tensionMax && parseFloat(row.UAvg) > parseFloat(tensionMax))
+                return false;
+              if (
+                corrienteMin &&
+                parseFloat(row.IAvg) < parseFloat(corrienteMin)
+              )
+                return false;
+              if (
+                corrienteMax &&
+                parseFloat(row.IAvg) > parseFloat(corrienteMax)
+              )
+                return false;
+              if (potenciaMin && parseFloat(row.PSum) < parseFloat(potenciaMin))
+                return false;
+              if (potenciaMax && parseFloat(row.PSum) > parseFloat(potenciaMax))
+                return false;
+
+              return true;
+            });
+
+            if (gridApi) gridApi.setGridOption("rowData", datosActivos);
+            crearGraficos(datosActivos);
+
+            if (datosActivos.length === 0) {
+              alert("No se encontraron datos con los filtros aplicados");
+            }
+          } catch (error) {
+            console.error("Error al aplicar filtro local:", error);
+          } finally {
+            document.getElementById("loadingMessage").style.display = "none";
+          }
+        }, loadingDelay);
+        return;
       }
-    }, loadingDelay);
+
+      // MODO API
+      const filtros = {
+        device_uid: "ESP32_001",
+        start_date: new Date(fechaInicio).toISOString(),
+        end_date: new Date(fechaFin).toISOString(),
+        limit: 5000,
+      };
+
+      const tensionMin = document.getElementById("tensionMin").value;
+      const tensionMax = document.getElementById("tensionMax").value;
+      const corrienteMin = document.getElementById("corrienteMin").value;
+      const corrienteMax = document.getElementById("corrienteMax").value;
+      const potenciaMin = document.getElementById("potenciaMin").value;
+      const potenciaMax = document.getElementById("potenciaMax").value;
+
+      if (tensionMin) filtros.uavg_min = tensionMin;
+      if (tensionMax) filtros.uavg_max = tensionMax;
+      if (corrienteMin) filtros.iavg_min = corrienteMin;
+      if (corrienteMax) filtros.iavg_max = corrienteMax;
+      if (potenciaMin) filtros.psum_min = potenciaMin;
+      if (potenciaMax) filtros.psum_max = potenciaMax;
+
+      const params = new URLSearchParams(filtros);
+      const url = `https://api.orion.mabcontrol.ar/api/energy/3p3w/filter?${params}`;
+
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      const apiData = await response.json();
+      let datos_api = Array.isArray(apiData)
+        ? apiData
+        : apiData.data || apiData.results || [];
+
+      if (datos_api && datos_api.length > 0) {
+        const datosFiltrados = transformarDatosAPI(datos_api);
+        datos = datosFiltrados;
+        datosActivos = datosFiltrados;
+
+        if (gridApi) gridApi.setGridOption("rowData", datosActivos);
+        else inicializarGrid();
+        crearGraficos(datosActivos);
+        alert(`Filtros aplicados: ${datos_api.length} registros encontrados`);
+      } else {
+        alert("No se encontraron datos con los filtros aplicados");
+      }
+    } catch (error) {
+      console.error("Error en filtro API:", error);
+      alert("Error al aplicar filtros: " + error.message);
+    } finally {
+      document.getElementById("loadingMessage").style.display = "none";
+    }
+  });
+}
+
+// Botón limpiar filtros
+const limpiarFiltros = document.getElementById("limpiarFiltros");
+if (limpiarFiltros) {
+  limpiarFiltros.addEventListener("click", function () {
+    document.getElementById("tensionMin").value = "";
+    document.getElementById("tensionMax").value = "";
+    document.getElementById("corrienteMin").value = "";
+    document.getElementById("corrienteMax").value = "";
+    document.getElementById("potenciaMin").value = "";
+    document.getElementById("potenciaMax").value = "";
+
+    if (datos.length > 0) {
+      const sortedDatos = [...datos].sort((a, b) => {
+        const dateA = new Date(formatearFechaHora(a.Date, a.Time));
+        const dateB = new Date(formatearFechaHora(b.Date, b.Time));
+        return dateA - dateB;
+      });
+      document.getElementById("fechaInicio").value = formatearFechaHora(
+        sortedDatos[0].Date,
+        sortedDatos[0].Time,
+      );
+      document.getElementById("fechaFin").value = formatearFechaHora(
+        sortedDatos[sortedDatos.length - 1].Date,
+        sortedDatos[sortedDatos.length - 1].Time,
+      );
+
+      datosActivos = datos;
+      if (gridApi) gridApi.setGridOption("rowData", datosActivos);
+      crearGraficos(datosActivos);
+    }
   });
 }
 
@@ -1143,6 +1355,154 @@ function getYAxisRange(data) {
     min: Number(finalMin.toFixed(3)),
     max: Number(finalMax.toFixed(3)),
   };
+}
+
+// --- Funciones para Modo API (3P3W) ---
+
+async function cargarDatosAPI() {
+  try {
+    updateStatus(false, "Cargando datos...");
+    const url = `${API_URL}&limit=${currentLimit}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const apiData = await response.json();
+    let datos_api = Array.isArray(apiData) ? apiData : apiData.data || [];
+
+    if (datos_api && datos_api.length > 0) {
+      const ultimoRegistro = datos_api[0];
+      const timestampUltimo = new Date(ultimoRegistro.ts);
+      timestampUltimo.setHours(timestampUltimo.getHours() - 3);
+      const ahora = new Date();
+      const diferenciaSegundos = (ahora - timestampUltimo) / 1000;
+
+      let datosProcesados = transformarDatosAPI(datos_api);
+
+      // Ordenar datos cronológicamente (del más antiguo al más reciente) para que los gráficos se dibujen correctamente de izquierda a derecha
+      datosProcesados.sort((a, b) => {
+        const dateA = new Date(formatearFechaHora(a.Date, a.Time));
+        const dateB = new Date(formatearFechaHora(b.Date, b.Time));
+        return dateA - dateB;
+      });
+
+      datos = datosProcesados;
+      datosActivos = datosProcesados;
+
+      actualizarUIConDatosAPI(datosProcesados);
+
+      if (Math.abs(diferenciaSegundos) <= 10) {
+        updateStatus(true, "Conectado");
+      } else {
+        updateStatus(false, "Desconectado");
+      }
+
+      const lastUpdateElement = document.getElementById("lastUpdate");
+      if (lastUpdateElement)
+        lastUpdateElement.textContent = new Date().toLocaleTimeString("es-AR");
+    } else {
+      updateStatus(false, "Sin datos");
+    }
+  } catch (error) {
+    console.error("Error en cargarDatosAPI:", error);
+    updateStatus(false, "Error de conexión");
+  }
+}
+
+function transformarDatosAPI(apiData) {
+  return apiData.map((item) => {
+    try {
+      const fechaUTC = new Date(item.ts);
+      const fechaBA = new Date(fechaUTC.getTime() - 3 * 60 * 60 * 1000);
+
+      const fechaFormateada = `${fechaBA.getFullYear()}-${String(fechaBA.getMonth() + 1).padStart(2, "0")}-${String(fechaBA.getDate()).padStart(2, "0")}`;
+      const horaFormateada = `${String(fechaBA.getHours()).padStart(2, "0")}:${String(fechaBA.getMinutes()).padStart(2, "0")}:${String(fechaBA.getSeconds()).padStart(2, "0")}`;
+
+      return {
+        Date: fechaFormateada,
+        Time: horaFormateada,
+        UAB: parseFloat(item.ua) || 0,
+        UBC: parseFloat(item.ub) || 0,
+        UCA: parseFloat(item.uc) || 0,
+        UAvg: parseFloat(item.uavg) || 0,
+        IA: parseFloat(item.ia) || 0,
+        IB: parseFloat(item.ib) || 0,
+        IC: parseFloat(item.ic) || 0,
+        IAvg: parseFloat(item.iavg) || 0,
+        PA: parseFloat(item.pa) || 0,
+        PB: parseFloat(item.pb) || 0,
+        PC: parseFloat(item.pc) || 0,
+        PSum: parseFloat(item.psum) || 0,
+        QA: parseFloat(item.qa) || 0,
+        QB: parseFloat(item.qb) || 0,
+        QC: parseFloat(item.qc) || 0,
+        QSum: parseFloat(item.qsum) || 0,
+        SA: parseFloat(item.sa) || 0,
+        SB: parseFloat(item.sb) || 0,
+        SC: parseFloat(item.sc) || 0,
+        SSum: parseFloat(item.ssum) || 0,
+        PF: parseFloat(item.pf) || 0,
+        PFA: parseFloat(item.pfa) || 0,
+        PFB: parseFloat(item.pfb) || 0,
+        PFC: parseFloat(item.pfc) || 0,
+        EPA: parseFloat(item.epa) || 0,
+        EQA: parseFloat(item.eqa) || 0,
+        UTHAB: parseFloat(item.utha) || 0,
+        UTHBC: parseFloat(item.uthb) || 0,
+        UTHCA: parseFloat(item.uthc) || 0,
+        ITHA: parseFloat(item.itha) || 0,
+        ITHB: parseFloat(item.ithb) || 0,
+        ITHC: parseFloat(item.ithc) || 0,
+      };
+    } catch (error) {
+      return {
+        Date: "2024-01-01",
+        Time: "00:00:00",
+        UAvg: 0,
+        IAvg: 0,
+        PSum: 0,
+      };
+    }
+  });
+}
+
+function actualizarUIConDatosAPI(datosProcesados) {
+  try {
+    const serialNumber = document.getElementById("serialNumber");
+    if (serialNumber) serialNumber.textContent = "ESP32_001";
+
+    if (datosProcesados.length > 0) {
+      const sortedDatos = [...datosProcesados].sort(
+        (a, b) =>
+          new Date(formatearFechaHora(a.Date, a.Time)) -
+          new Date(formatearFechaHora(b.Date, b.Time)),
+      );
+      document.getElementById("fechaInicio").value = formatearFechaHora(
+        sortedDatos[0].Date,
+        sortedDatos[0].Time,
+      );
+      document.getElementById("fechaFin").value = formatearFechaHora(
+        sortedDatos[sortedDatos.length - 1].Date,
+        sortedDatos[sortedDatos.length - 1].Time,
+      );
+    }
+
+    document.getElementById("contenidoDinamico").style.display = "block";
+    document.getElementById("graficosContainer").style.display = "block";
+    document.getElementById("loadingMessage").style.display = "none";
+
+    if (gridApi) gridApi.setGridOption("rowData", datosProcesados);
+    else inicializarGrid();
+    crearGraficos(datosProcesados);
+  } catch (error) {
+    console.error("Error en actualizarUIConDatosAPI:", error);
+  }
+}
+
+function updateStatus(isOnline, statusText) {
+  const indicator = document.getElementById("statusIndicator");
+  const textElement = document.getElementById("statusText");
+  if (indicator)
+    indicator.className = `status-indicator ${isOnline ? "status-online" : "status-offline"}`;
+  if (textElement) textElement.textContent = statusText;
 }
 
 // Event listener para exportar PDF

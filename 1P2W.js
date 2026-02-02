@@ -1862,13 +1862,18 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         // Transformar datos de API a formato local
-        const datosProcesados = transformarDatosAPI(datos_api);
+        let datosProcesados = transformarDatosAPI(datos_api);
 
-        // Actualizar variables globales
+        // Ordenar datos cronológicamente (del más antiguo al más reciente) para que los gráficos se dibujen correctamente de izquierda a derecha
+        datosProcesados.sort((a, b) => {
+          const dateA = new Date(formatearFechaHora(a.Date, a.Time));
+          const dateB = new Date(formatearFechaHora(b.Date, b.Time));
+          return dateA - dateB;
+        });
+
         datos = datosProcesados;
         datosActivos = datosProcesados;
 
-        // Actualizar UI
         actualizarUIConDatosAPI(datosProcesados);
 
         // Determinar estado según antigüedad del último registro
