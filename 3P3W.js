@@ -1513,49 +1513,218 @@ async function exportToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 10;
 
-    // Título principal
-    doc.setFontSize(18);
-    doc.setFont(undefined, "bold");
-    doc.text(
-      "Orión Ingeniería en Mediciones Eléctricas",
-      pageWidth / 2,
-      margin + 10,
-      { align: "center" },
-    );
-    doc.setFontSize(14);
-    doc.text(
-      "ANALIZADOR DE CALIDAD DE ENERGÍA ME631",
-      pageWidth / 2,
-      margin + 25,
-      { align: "center" },
-    );
-    doc.setFontSize(12);
-    doc.text(
-      "Tipo de Conexión: 3 FASES 3 CONDUCTORES",
-      pageWidth / 2,
-      margin + 30,
-      { align: "center" },
-    );
-
-    // Información del equipo
-    doc.setFontSize(10);
-    const serialNumber = document.getElementById("serialNumber").textContent;
-    doc.text(`S/N: ${serialNumber}`, pageWidth / 2, margin + 34, {
-      align: "center",
-    });
-
+    const companyName = "Orión Ingeniería en Mediciones Eléctricas";
+    const reportTitle = "ANALIZADOR DE CALIDAD DE ENERGÍA ME631";
+    const connectionType = "3 FASES 3 CONDUCTORES";
+    const serialNumber =
+      document.getElementById("serialNumber").textContent || "N/D";
     const fileName2 =
       document.getElementById("csvFile").files[0]?.name ||
       "Datos no disponibles";
-    doc.text(`Archivo: ${fileName2}`, margin, margin + 40);
+    const fechaInicio = document.getElementById("fechaInicio").value || "N/D";
+    const fechaFin = document.getElementById("fechaFin").value || "N/D";
+    const generatedAt = new Date().toLocaleString("es-AR");
+    const isApiMode = modoActual === "api";
+    const sourceLabel = isApiMode ? "API (tiempo real)" : "Archivo CSV";
+    const reportData = datosActivos?.length ? datosActivos : datos;
 
-    const fechaInicio = document.getElementById("fechaInicio").value;
-    const fechaFin = document.getElementById("fechaFin").value;
-    doc.text(`Período: ${fechaInicio} - ${fechaFin}`, margin, margin + 45);
+    const loadImageDataUrl = (src) =>
+      new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
 
-    let yPos = 60;
+    let logoDataUrl = null;
+    try {
+      logoDataUrl = await loadImageDataUrl("flaticon/ingenieria-electrica.png");
+    } catch (error) {
+      console.warn("No se pudo cargar el logo:", error);
+    }
+
+    const getStats = (values) => {
+      const clean = values.filter((value) => Number.isFinite(value));
+      if (!clean.length) return { min: null, max: null, avg: null };
+      const min = Math.min(...clean);
+      const max = Math.max(...clean);
+      const avg = clean.reduce((acc, value) => acc + value, 0) / clean.length;
+      return { min, max, avg };
+    };
+
+    const formatNumber = (value, decimals = 2) =>
+      Number.isFinite(value) ? value.toFixed(decimals) : "-";
+
+    const getChartTitle = (canvasId) => {
+      const chart = charts?.[canvasId];
+      const title = chart?.options?.plugins?.title?.text;
+      if (Array.isArray(title)) return title.join(" ");
+      return title || "";
+    };
+
+    const drawHeader = (includeMeta) => {
+      doc.setFont(undefined, "bold");
+      doc.setFontSize(16);
+      if (logoDataUrl) {
+        doc.addImage(logoDataUrl, "PNG", margin, margin + 2, 12, 12);
+      }
+      doc.text(companyName, pageWidth / 2, margin + 8, {
+        align: "center",
+      });
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(12);
+      doc.text(reportTitle, pageWidth / 2, margin + 15, {
+        align: "center",
+      });
+      doc.setFontSize(11);
+      doc.text(
+        `Tipo de Conexión: ${connectionType}`,
+        pageWidth / 2,
+        margin + 21,
+        {
+          align: "center",
+        },
+      );
+
+      let headerBottom = margin + 26;
+      if (includeMeta) {
+        doc.setFontSize(10);
+        const metaStartY = margin + 30;
+        const metaGap = 5;
+        doc.text(`S/N: ${serialNumber}`, margin, metaStartY);
+        doc.text(`Origen: ${sourceLabel}`, margin, metaStartY + metaGap);
+        doc.text(`Archivo: ${fileName2}`, margin, metaStartY + metaGap * 2);
+        doc.text(
+          `Período: ${fechaInicio} - ${fechaFin}`,
+          margin,
+          metaStartY + metaGap * 3,
+        );
+        doc.text(`Generado: ${generatedAt}`, margin, metaStartY + metaGap * 4);
+        headerBottom = metaStartY + metaGap * 4 + 4;
+      }
+
+      doc.setDrawColor(200);
+      doc.line(margin, headerBottom, pageWidth - margin, headerBottom);
+      return headerBottom + 6;
+    };
+
+    let yPos = drawHeader(true);
+
+    const footerSpace = 12;
+    const ensureSpace = (height) => {
+      if (yPos + height > pageHeight - footerSpace) {
+        doc.addPage();
+        yPos = drawHeader(false);
+      }
+    };
+
+    const flattenPhaseValues = (item, keys) =>
+      keys.map((key) => item[key]).filter((value) => value !== undefined);
+
+    const summaryRows = [
+      {
+        label: "Voltaje (V)",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["UA", "UB", "UC"]),
+          ),
+        ),
+      },
+      {
+        label: "Corriente (A)",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["IA", "IB", "IC"]),
+          ),
+        ),
+      },
+      {
+        label: "Potencia Activa (kW)",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["PA", "PB", "PC"]),
+          ),
+        ),
+      },
+      {
+        label: "Factor de Potencia",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["PFA", "PFB", "PFC"]),
+          ),
+        ),
+      },
+      {
+        label: "THD Tensión (%)",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["UTHA", "UTHB", "UTHC"]),
+          ),
+        ),
+      },
+      {
+        label: "THD Corriente (%)",
+        stats: getStats(
+          reportData.flatMap((item) =>
+            flattenPhaseValues(item, ["ITHA", "ITHB", "ITHC"]),
+          ),
+        ),
+      },
+    ];
+
+    const drawSummaryTable = () => {
+      doc.setFont(undefined, "bold");
+      doc.setFontSize(11);
+      doc.text("Resumen de indicadores", margin, yPos);
+      yPos += 6;
+
+      const columns = {
+        label: margin,
+        min: pageWidth / 2 - 15,
+        max: pageWidth / 2 + 15,
+        avg: pageWidth - margin - 10,
+      };
+
+      doc.setFontSize(9);
+      doc.text("Métrica", columns.label, yPos);
+      doc.text("Mín", columns.min, yPos, { align: "right" });
+      doc.text("Máx", columns.max, yPos, { align: "right" });
+      doc.text("Prom", columns.avg, yPos, { align: "right" });
+      yPos += 4;
+      doc.setDrawColor(180);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 4;
+
+      doc.setFont(undefined, "normal");
+      summaryRows.forEach((row) => {
+        doc.text(row.label, columns.label, yPos);
+        doc.text(formatNumber(row.stats.min), columns.min, yPos, {
+          align: "right",
+        });
+        doc.text(formatNumber(row.stats.max), columns.max, yPos, {
+          align: "right",
+        });
+        doc.text(formatNumber(row.stats.avg), columns.avg, yPos, {
+          align: "right",
+        });
+        yPos += 5;
+      });
+
+      yPos += 4;
+    };
+
+    ensureSpace(45);
+    drawSummaryTable();
 
     // Array de gráficos a exportar
     const graphConfigs = [
@@ -1573,6 +1742,12 @@ async function exportToPDF() {
       { canvas: "graficaEnergiaReactiva" },
     ];
 
+    const columnGap = 6;
+    const graphWidth = (pageWidth - margin * 2 - columnGap) / 2;
+    const graphHeight = 58;
+    const titleHeight = 5;
+    const rowGap = 6;
+
     // Procesar cada gráfico
     for (let i = 0; i < graphConfigs.length; i++) {
       const config = graphConfigs[i];
@@ -1581,23 +1756,52 @@ async function exportToPDF() {
       if (canvas) {
         console.log(`Cargando gráfico: ${config.canvas}`);
         const imgData = canvas.toDataURL("image/png");
-        const xPos = i % 2 === 0 ? margin : pageWidth / 2;
+        const columnIndex = i % 2;
+        const xPos = margin + columnIndex * (graphWidth + columnGap);
 
-        if (i > 0 && i % 2 === 0) {
-          yPos += 80;
+        if (i > 0 && columnIndex === 0) {
+          yPos += graphHeight + titleHeight + rowGap;
         }
 
-        if (yPos + 60 > doc.internal.pageSize.height - margin) {
+        if (yPos + graphHeight + titleHeight > pageHeight - footerSpace) {
           doc.addPage();
-          yPos = 20;
+          yPos = drawHeader(false);
         }
 
-        doc.addImage(imgData, "PNG", xPos, yPos, pageWidth / 2 - margin, 60);
+        const chartTitle = getChartTitle(config.canvas);
+        if (chartTitle) {
+          doc.setFontSize(9);
+          doc.text(chartTitle, xPos, yPos);
+        }
+
+        doc.addImage(
+          imgData,
+          "PNG",
+          xPos,
+          yPos + titleHeight,
+          graphWidth,
+          graphHeight,
+        );
       } else {
         console.warn(`No se encontró el gráfico: ${config.canvas}`);
       }
     }
 
+    const pageCount = doc.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+      doc.setPage(page);
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(
+        `Página ${page} de ${pageCount}`,
+        pageWidth - margin,
+        pageHeight - 6,
+        { align: "right" },
+      );
+      doc.text("ORION Servicios Eléctricos", margin, pageHeight - 6);
+    }
+
+    doc.setTextColor(0);
     const formattedDate = new Date().toISOString().split("T")[0];
     const fileName = `ReporteElectrico_${formattedDate}_${serialNumber}_3P3W.pdf`;
 
